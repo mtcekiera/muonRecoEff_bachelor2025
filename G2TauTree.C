@@ -1,0 +1,387 @@
+#define G2TauTree_cxx
+#include "G2TauTree.h"
+
+Float_t abs_t(Float_t x){
+    if(x<0) return -1*x;
+    return x;
+}
+
+G2TauTree::G2TauTree(std::string fname, bool TPType_, double sigma) : fChain(0) 
+{
+    weight = 1.0;
+    if(sigma>0.0){
+        int N = 50000;
+        double L = 1669.69; // [ub^-1]
+        weight = L*sigma/N;
+    }
+    
+    TPType = TPType_;
+    input = "./input/"+fname;
+    if(TPType)
+        output = "output/mu_ID/"+fname;
+    else 
+        output = "output/ID_MS/"+fname;
+    std::cout<<"input: "<<input<<"\n"<<"output: "<<output<<std::endl;
+    // 0 - ID|MS; 1 - mu|ID
+    if(!TPType)
+        std::cout<<"ID||MS analysis"<<std::endl;
+    else
+        std::cout<<"MU||id analysis"<<std::endl;
+    TTree * tree;
+    TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(input.c_str());
+    if (!f || !f->IsOpen()) {
+        f = new TFile(input.c_str());
+    }
+    f->GetObject("G2TauTree",tree);
+
+    
+    Init(tree);
+
+    Loop();
+}
+
+
+void G2TauTree::Loop()
+{
+    if (fChain == 0) return;
+
+    // commands for output
+    TFile* output_file = new TFile(output.c_str(), "RECREATE");
+
+    TTree *output_tree = new TTree("G2TauTree_output", "Analysed G2TauTree data");
+
+
+    // cutflow
+    std::vector<Int_t> *eps_cutflow = new std::vector<Int_t>();
+
+    Int_t TPpair_n;
+
+    std::vector<Float_t> *tag_pt  = new std::vector<Float_t>();
+    std::vector<Float_t> *tag_phi  = new std::vector<Float_t>();
+    std::vector<Float_t> *tag_eta  = new std::vector<Float_t>();
+
+    std::vector<Float_t> *probe_pt  = new std::vector<Float_t>();
+    std::vector<Float_t> *probe_phi  = new std::vector<Float_t>();
+    std::vector<Float_t> *probe_eta  = new std::vector<Float_t>();
+    std::vector<Float_t> *probe_aco_presel = new std::vector<Float_t>();
+    std::vector<Float_t> *probe_aco_postsel = new std::vector<Float_t>();
+    std::vector<Float_t> *TPpair_dR_presel = new std::vector<Float_t>();
+    std::vector<Float_t> *TPpair_dR_postsel = new std::vector<Float_t>();
+    std::vector<Float_t> *probe_d0_presel = new std::vector<Float_t>();
+    std::vector<Float_t> *probe_d0_postsel = new std::vector<Float_t>();
+
+    std::vector<Float_t> *eps_pass = new std::vector<Float_t>(); 
+    std::vector<Float_t> *eps_qEta_pass = new std::vector<Float_t>();
+    std::vector<Float_t> *eps_total = new std::vector<Float_t>();
+    std::vector<Float_t> *eps_qEta_total = new std::vector<Float_t>();
+
+    std::vector<Float_t> *TPpair_pt_presel = new std::vector<Float_t>();
+    std::vector<Float_t> *TPpair_pt_postsel = new std::vector<Float_t>();
+    std::vector<Float_t> *TPpair_M_presel = new std::vector<Float_t>();
+    std::vector<Float_t> *TPpair_M_postsel = new std::vector<Float_t>();
+
+
+
+    // branches
+    output_tree->Branch("weight", &weight);
+    output_tree->Branch("eps_cutflow", &eps_cutflow);
+
+    output_tree->Branch("TPpair_n", &TPpair_n); // no. of passed tag-probe pairs
+
+    output_tree->Branch("tag_pt", &tag_pt);     // kinematic var. of passed tags
+    output_tree->Branch("tag_phi", &tag_phi);
+    output_tree->Branch("tag_eta", &tag_eta);
+
+    output_tree->Branch("probe_pt", &probe_pt);     // -||- of passed probes
+    output_tree->Branch("probe_phi", &probe_phi);
+    output_tree->Branch("probe_eta", &probe_eta);
+    output_tree->Branch("probe_aco_presel", &probe_aco_presel);
+    output_tree->Branch("probe_aco_postsel", &probe_aco_postsel);
+    output_tree->Branch("probe_d0_presel", &probe_d0_presel);
+    output_tree->Branch("probe_d0_postsel", &probe_d0_postsel);
+
+    output_tree->Branch("eps_pass", &eps_pass);
+    output_tree->Branch("eps_qEta_pass", &eps_qEta_pass);
+    output_tree->Branch("eps_total", &eps_total);
+    output_tree->Branch("eps_qEta_total", &eps_qEta_total);
+
+    output_tree->Branch("TPpair_pt_presel", &TPpair_pt_presel);
+    output_tree->Branch("TPpair_pt_postsel", &TPpair_pt_postsel);
+    output_tree->Branch("TPpair_dR_presel", &TPpair_dR_presel);
+    output_tree->Branch("TPpair_dR_postsel", &TPpair_dR_postsel);
+    output_tree->Branch("TPpair_M_presel", &TPpair_M_presel);
+    output_tree->Branch("TPpair_M_postsel", &TPpair_M_postsel);
+
+
+    int checkpoint = 10000;
+    Long64_t nentries = fChain->GetEntriesFast();
+    Long64_t nbytes = 0, nb = 0;
+
+    //////////////////  LOOP    /////////////////////////
+    for (Long64_t jentry=0; jentry<nentries;jentry++) 
+    {
+        
+        Long64_t ientry = LoadTree(jentry);
+        if (ientry < 0) break;
+        nb = fChain->GetEntry(jentry);   nbytes += nb;
+
+        if(jentry%checkpoint==0){
+            std::cout<<"\ranalysing entry no. "<<jentry<<" / "<<nentries<<std::flush;
+        }
+
+        ///// CLEARING VECTORS
+        eps_cutflow->clear();
+
+        TPpair_n = 0;
+
+        tag_pt->clear();
+        tag_phi->clear();
+        tag_eta->clear();
+
+        probe_pt->clear();
+        probe_phi->clear();
+        probe_eta->clear();
+        probe_aco_presel->clear();
+        probe_aco_postsel->clear();
+        probe_d0_presel->clear();
+        probe_d0_postsel->clear();
+
+        // passed pairs
+        eps_pass->clear(); 
+        eps_qEta_pass->clear();
+        eps_total->clear();
+        eps_qEta_total->clear();
+
+        TPpair_pt_presel->clear();
+        TPpair_pt_postsel->clear();
+        TPpair_dR_presel->clear();
+        TPpair_dR_postsel->clear();
+        TPpair_M_presel->clear();
+        TPpair_M_postsel->clear();
+
+
+
+        ////// EO CLEARING VECTORS
+
+        //eps
+        eps_cutflow->push_back(0);
+
+        //passes GRL: all data from file does
+        if(!passed_HLT_mu3_hi_FgapAC5_L1MU3V_VTE50){
+            output_tree->Fill();
+            continue;
+        }
+        
+        eps_cutflow->push_back(1);
+        //at least 1 muon
+        if(!(nMuon >= 1)){
+            output_tree->Fill();
+            continue;
+        } 
+        eps_cutflow->push_back(2);
+        // up to 2 tracks
+        // if(!(track_n<=2))
+        if(!(track_n==2 || track_n==1))
+        {
+            output_tree->Fill();
+            continue;
+        } 
+        eps_cutflow->push_back(3);
+
+        //finding tag
+        for(int tag = 0; tag<nMuon; tag++)
+        {
+            // if(!(muon_is_Loose->at(tag))) continue;
+            if(!(muon_is_LowPt->at(tag))) continue;
+            //muon_is_Tight 
+            if(!(abs(muon_eta->at(tag))<2.4)) continue;
+            if(!(muon_pt->at(tag)>3)) continue;
+            if(!(abs(muon_d0->at(tag))<2)) continue; //1
+
+            /////////////////// finding ID||MS probes /////////////////////////////////////
+
+            int MSmuon_n = MSmuon_d0->size();
+            if(!TPType) if(!(MSmuon_n==2)) continue; //2
+            if(!TPType) for(int probe = 0; probe<MSmuon_n; probe++)
+            { 
+                TLorentzVector v_tag, v_probe, v_pair; 
+                v_tag.SetPtEtaPhiM(muon_pt->at(tag), muon_eta->at(tag), muon_phi->at(tag), M_mu);
+                v_probe.SetPtEtaPhiM(MSmuon_pt->at(probe), MSmuon_eta->at(probe), MSmuon_phi->at(probe), M_mu);
+                v_pair = v_tag+v_probe;
+                double aco = 1-abs(v_tag.DeltaPhi(v_probe))/TMath::Pi();
+                double tp_dR = v_probe.DeltaR(v_tag);
+                
+            
+                // distributions before any selections
+                TPpair_M_presel->push_back(v_pair.M());
+
+
+                TPpair_dR_presel->push_back(tp_dR);
+                if(!(tp_dR>1)) continue;              //3
+                TPpair_dR_postsel->push_back(tp_dR);
+
+                probe_d0_presel->push_back(MSmuon_d0->at(probe));
+                if(!(abs(MSmuon_d0->at(probe))<2)) continue;
+                probe_d0_postsel->push_back(MSmuon_d0->at(probe));
+
+                TPpair_pt_presel->push_back(v_pair.Pt());
+                if(!(v_pair.Pt()<2)) continue;
+                TPpair_pt_postsel->push_back(v_pair.Pt());
+
+                probe_aco_presel->push_back(aco);
+                if(!(aco<0.02)) continue;
+                probe_aco_postsel->push_back(aco);
+                
+                TPpair_M_postsel->push_back(v_pair.M());
+                eps_total->push_back(MSmuon_pt->at(probe));
+                eps_qEta_total->push_back(MSmuon_eta->at(probe));
+
+                
+                for(int id = 0; id<track_n; id++)
+                {
+                    TLorentzVector v_id;
+                    v_id.SetPtEtaPhiM(track_pt->at(id), track_eta->at(id), track_phi->at(id), M_mu);
+
+                    if(!(track_is_matched_to_muon->at(id))) continue;  // instead of _is_loose_muon  // 7
+                    // check loosePrimary  //4
+                    if(!(muon_charge->at(tag)*track_charge->at(id)<0)) continue; // bc no MSmuon_charge //5
+                    if(!(abs(track_d0->at(id))<2)) continue;
+                    if(!(v_probe.DeltaR(v_id)<0.1)) continue;
+
+                    TPpair_n++;
+                    tag_pt->push_back(muon_pt->at(tag));
+                    tag_phi->push_back(muon_phi->at(tag));
+                    tag_eta->push_back(muon_eta->at(tag));
+
+                    probe_pt->push_back(MSmuon_pt->at(probe));
+                    probe_phi->push_back(MSmuon_phi->at(probe));
+                    probe_eta->push_back(MSmuon_eta->at(probe));
+
+
+                    eps_pass->push_back(MSmuon_pt->at(probe));
+                    eps_qEta_pass->push_back((MSmuon_eta->at(probe))*(track_charge->at(id)));
+
+                    // if only one tp pair is to be found
+                    // break;
+                }
+            }
+            /////////////////// finding mu||ID probes /////////////////////////////////////
+            else for(int probe = 0; probe<track_n; probe++)
+            {
+                TLorentzVector v_tag, v_probe, v_pair; 
+                v_tag.SetPtEtaPhiM(muon_pt->at(tag), muon_eta->at(tag), muon_phi->at(tag), M_mu);
+                v_probe.SetPtEtaPhiM(track_pt->at(probe), track_eta->at(probe), track_phi->at(probe), M_mu);
+                v_pair = v_tag+v_probe;
+                double aco = 1-abs(v_tag.DeltaPhi(v_probe))/TMath::Pi();
+                double tp_dR = v_probe.DeltaR(v_tag);
+                
+            
+                // distributions before any selections
+                // TPpair_M_presel->push_back(v_pair.M());
+
+                TPpair_dR_presel->push_back(tp_dR);
+                // if(!(tp_dR>1)) continue; 
+                TPpair_dR_postsel->push_back(tp_dR);
+                // !!! is this needed???
+
+                if(!(muon_charge->at(tag)*track_charge->at(probe)<0)) continue;
+                // if(!(track_is_LoosePrimary->at(probe))) continue;
+                if(!(track_is_matched_to_muon)) continue;
+
+                probe_d0_presel->push_back(track_d0->at(probe));
+                if(!(abs(track_d0->at(probe))<2)) continue;
+                probe_d0_postsel->push_back(track_d0->at(probe));
+
+                TPpair_pt_presel->push_back(v_pair.Pt());
+                if(!(v_pair.Pt()<2)) continue;
+                TPpair_pt_postsel->push_back(v_pair.Pt());
+
+                probe_aco_presel->push_back(aco);
+                if(!(aco<0.02)) continue;
+                probe_aco_postsel->push_back(aco);
+                    
+
+                eps_qEta_total->push_back(track_eta->at(probe)*track_charge->at(probe));
+                eps_total->push_back(track_pt->at(probe));
+
+                for(int m_LPt = 0; m_LPt < nMuon; m_LPt++)
+                {
+                    TLorentzVector v_m_LPt;
+                    v_m_LPt.SetPtEtaPhiM(muon_pt->at(m_LPt), muon_eta->at(m_LPt), muon_phi->at(m_LPt), M_mu);
+                    if(!(v_probe.DeltaR(v_m_LPt)<0.01)) continue;
+                    if(!(muon_is_LowPt)) continue; // 5
+
+
+                    TPpair_n++;
+                    tag_pt->push_back(muon_pt->at(tag));
+                    tag_phi->push_back(muon_phi->at(tag));
+                    tag_eta->push_back(muon_eta->at(tag));
+
+                    probe_pt->push_back(track_pt->at(probe));
+                    probe_phi->push_back(track_phi->at(probe));
+                    probe_eta->push_back(track_eta->at(probe));
+                    TPpair_M_postsel->push_back(v_pair.M());
+
+                    eps_pass->push_back(track_pt->at(probe));
+                    eps_qEta_pass->push_back((track_eta->at(probe))*(track_charge->at(probe)));
+                    
+                    // if only one tp pair is to be found
+                    // break;
+                    
+                }
+            }
+            // if only one tp pair is to be found
+            // break;
+        }
+        if(!TPpair_n){
+            output_tree->Fill();
+            continue;
+        } 
+        eps_cutflow->push_back(4);
+
+        
+
+        output_tree->Fill();
+
+    }
+    ////////// END OF LOOP //////////////
+    std::cout<<"\ranalysing entry no. "<<nentries<<" / "<<nentries<<std::flush;
+    std::cout<<std::endl;
+    std::cout<<"[ DONE ]"<<std::endl;
+
+
+    // writing the histograms
+    // output_file->Write();
+
+    // cutflows
+    delete eps_cutflow;
+
+    delete eps_pass; 
+    delete eps_total;
+    delete eps_qEta_pass;
+    delete eps_qEta_total;
+
+    delete TPpair_pt_presel;
+    delete TPpair_pt_postsel;
+    delete TPpair_M_presel;
+    delete TPpair_M_postsel;
+    delete TPpair_dR_presel;
+    delete TPpair_dR_postsel;
+
+    delete tag_pt;
+    delete tag_eta;
+    delete tag_phi;
+
+    delete probe_pt;
+    delete probe_eta;
+    delete probe_phi;
+    delete probe_aco_presel;
+    delete probe_aco_postsel;
+    delete probe_d0_presel;
+    delete probe_d0_postsel;
+
+
+    output_tree->Write();
+    output_file->Close();
+}
+

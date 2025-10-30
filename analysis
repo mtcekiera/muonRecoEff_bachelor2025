@@ -1,0 +1,101 @@
+# !/bin/bash
+source ~/root/bin/thisroot.sh
+
+if [ $# -eq 0 ]; then
+  echo "Usage: $0 [-s] [-m] [-d] [-g] [-p] [-e] [-c] [-b] [-h]"
+  echo "  -s    Setup environment"
+  echo "  -m    Analyse MC data"
+  echo "  -d    Analyse real data"
+  echo "  -g    Generate histograms"
+  echo "  -p    Plot histograms"
+  echo "  -e    Make efficiency plots"
+  echo "  -c    Plot cutflows"
+  echo "  -b    Open TBrowser"
+  echo "  -h    Show this help message"
+  exit 1
+fi
+
+while getopts "smdgpecbh" opt; do
+  case $opt in
+    s)
+        source ~/root/bin/thisroot.sh
+    ;;
+    m)
+        # rm ./output/ID_MS/mc_4m7.root
+        # rm ./output/ID_MS/mc_7m20.root
+        # rm ./output/ID_MS/mc_20m.root
+
+        # rm ./output/mu_ID/mc_4m7.root
+        # rm ./output/mu_ID/mc_7m20.root
+        # rm ./output/mu_ID/mc_20m.root
+
+        # rm ./output/ID_MS/mc.root
+        # rm ./output/mu_ID/mc.root
+        echo "Looping MC data"
+
+        root -l -q 'G2TauTree.C("mc_4m7.root", 0, 925)'
+        root -l -q 'G2TauTree.C("mc_4m7.root", 1, 925)'
+
+        root -l -q 'G2TauTree.C("mc_7m20.root", 0, 265)'
+        root -l -q 'G2TauTree.C("mc_7m20.root", 1, 265)'
+
+        root -l -q 'G2TauTree.C("mc_20m.root", 0, 9.74)'
+        root -l -q 'G2TauTree.C("mc_20m.root", 1, 9.74)'
+
+        echo "Merging files"
+        hadd -f -v 0 ./output/ID_MS/mc.root ./output/ID_MS/mc_4m7.root ./output/ID_MS/mc_7m20.root ./output/ID_MS/mc_20m.root
+        hadd -f -v 0 ./output/mu_ID/mc.root ./output/mu_ID/mc_4m7.root ./output/mu_ID/mc_7m20.root ./output/mu_ID/mc_20m.root
+        ;;
+    d)
+        # rm ./output/ID_MS/data23.root
+        # rm ./output/mu_ID/data23.root
+        echo "Generating data histograms"
+        root -l -q 'G2TauTree.C("data23.root", 0, 0.0)'
+        root -l -q 'G2TauTree.C("data23.root", 1, 0.0)'
+        ;;
+    g)
+        echo "Generating histograms"
+        python3 genHistograms.py ./output/ID_MS/mc.root ./output/ID_MS/mc_histograms.root
+        # python3 genHistograms.py ./output/ID_MS/data23.root ./output/ID_MS/data23_histograms.root
+
+        # python3 genHistograms.py ./output/mu_ID/mc.root ./output/mu_ID/mc_histograms.root
+        python3 genHistograms.py ./output/mu_ID/data23.root ./output/mu_ID/data23_histograms.root
+        ;;
+    e)
+        echo "Making efficiency plots"
+        python3 plotEff.py \
+        --id-ms-data ./output/ID_MS/data23_histograms.root \
+        --id-ms-mc   ./output/ID_MS/mc_histograms.root \
+        --mu-id-data ./output/mu_ID/data23_histograms.root \
+        --mu-id-mc   ./output/mu_ID/mc_histograms.root \
+        --bins 1.0,2.0,2.5,3.0,3.5,4.0,4.5,5.5,7.5,10.0,12.5,15.0,50.0 \
+        --out ./histograms/efficiency.pdf
+        ;;
+    p)
+        echo "Plotting histograms"
+        # python3 plotHistograms.py ./output/ID_MS/data23_histograms.root ./output/ID_MS/mc_histograms.root ./histograms/ID_MS_compare.pdf
+        # python3 plotHistograms.py ./output/mu_ID/data23_histograms.root ./output/mu_ID/mc_histograms.root ./histograms/mu_ID_compare.pdf
+        python3 plotHistograms.py ./output/ID_MS/data23_histograms.root ./output/ID_MS/mc_histograms.root ./histograms/ID_MS_compare.pdf
+        python3 plotHistograms.py ./output/mu_ID/data23_histograms.root ./output/mu_ID/mc_histograms.root ./histograms/mu_ID_compare.pdf
+        ;;
+    c)
+        echo "Plotting cutflows"
+        python3 plotCutflow.py ./output/ID_MS/data23_histograms.root ./output/mu_ID/data23_histograms.root ./histograms/cutflow.pdf
+        ;;
+    b)
+        root -l -e 'TBrowser* b = new TBrowser(); b->GetBrowserImp()->GetMainFrame()->Resize(1600,1200);'
+        ;;
+    h)
+        echo "Usage: $0 [-m] [-d] [-h] [-b]"
+        echo "  -m    Analyse MC data"
+        echo "  -d    Analyse real data"  
+        echo "  -b    Open TBrowser"
+        echo "  -h    Show this help message"   
+        exit 1
+        ;;
+    \?)
+      echo "Invalid option: -$OPTARG"
+      ;;
+  esac
+done
+echo "Done!"
