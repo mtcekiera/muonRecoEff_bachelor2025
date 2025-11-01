@@ -9,17 +9,24 @@ ROOT.gROOT.SetBatch(True)
 ROOT.TH1.AddDirectory(False)
 
 # ---------- CONFIG ----------
-# Variable-bin edges (strictly > 0 for log-x)
 BIN_EDGES = [1.0, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.5, 7.5, 10.0, 12.5, 15.0, 50.0]
-
-# Histogram names inside each file
 HNAME_PASS  = "eps_pass"
 HNAME_TOTAL = "eps_total"
+OUT_PDF_DATA = "histograms/wpEfficiencies_data.pdf"
+OUT_PDF_MC   = "histograms/wpEfficiencies_mc.pdf"
 
-# Output PDF
-OUT_PDF = "histograms/wpEfficiencies.pdf"
-# ----------------------------
-
+# Styling
+MARKER_SIZE     = 1.1
+LINE_WIDTH_DATA = 2
+LINE_WIDTH_MC   = 3
+# ---------------------------------------------------------
+labels = [
+    "Initial",
+    "Tight WP",    
+    "Tight WP, aco<0.01",    
+    "Tight WP, aco<0.03",
+    "ZDC cuts"    
+]
 def style():
     s = ROOT.gStyle
     s.SetOptStat(0)
@@ -57,7 +64,9 @@ def build_efficiency_single_file(path, hname_pass, hname_total, edges):
     if not ROOT.TEfficiency.CheckConsistency(h_pass, h_total):
         print(f"Warning: inconsistent pass/total in {path}")
         return None
-    return ROOT.TEfficiency(h_pass, h_total)
+    te = ROOT.TEfficiency(h_pass, h_total)
+    te.SetStatisticOption(ROOT.TEfficiency.kFNormal)  # sane errors for weighted inputs
+    return te
 
 def get_efficiencies(analysis):
     base = os.path.join("output", analysis)
@@ -92,90 +101,104 @@ def combine_total_eff(eff1, eff2):
         gr.SetPointError(i-1, ex, ex, edn, eup)
     return gr
 
-def draw_eff_page(c, title, edges, eff_data_dict, eff_mc_dict, colors):
-    c.Clear(); c.SetLogx(True); c.SetLogy(False)
-    frame = ROOT.TH1F("frame_"+title, "", len(edges)-1, array('d', edges))
+def draw_single_category_page(c, title, edges, eff_dict, colors, frame_name,
+                              label_prefix="data", marker_style=20, line_width=2):
+    c.Clear(); c.SetLogx(True); c.SetLogy(False); c.SetGridx(True); c.SetGridy(True)
+
+    frame = ROOT.TH1F(frame_name, "", len(edges)-1, array('d', edges))
     frame.SetMinimum(0.0); frame.SetMaximum(1.1)
     frame.SetTitle(title)
     frame.GetXaxis().SetTitle("p_{T} [GeV]")
     frame.GetYaxis().SetTitle("Efficiency")
     frame.Draw()
 
-    leg = ROOT.TLegend(0.60, 0.15, 0.88, 0.38)
+    leg = ROOT.TLegend(0.60, 0.15, 0.90, 0.50)
     leg.SetBorderSize(0); leg.SetFillStyle(0)
 
-    keep = []
-    for i, wp in enumerate(sorted(eff_data_dict.keys())):
-        gdata = eff_data_dict[wp].CreateGraph()
-        gdata.SetLineColor(colors[i]); gdata.SetMarkerColor(colors[i])
-        gdata.SetMarkerStyle(20); gdata.SetMarkerSize(0.8)
-        gdata.Draw("P SAME"); keep.append(gdata)
-        leg.AddEntry(gdata, f"data w{wp[-1]}", "p")
-
-        if wp in eff_mc_dict:
-            gmc = eff_mc_dict[wp].CreateGraph()
-            gmc.SetLineColor(colors[i]); gmc.SetLineStyle(2)
-            gmc.Draw("L SAME"); keep.append(gmc)
-            leg.AddEntry(gmc, f"mc w{wp[-1]}", "l")
+    keep = [frame, leg]
+    for i in range(5):
+        wp = f"w{i}"
+        if wp not in eff_dict: 
+            continue
+        g = eff_dict[wp].CreateGraph()
+        g.SetLineColor(colors[i]); g.SetLineWidth(line_width)  # error-bar thickness
+        g.SetMarkerColor(colors[i]); g.SetMarkerStyle(marker_style); g.SetMarkerSize(MARKER_SIZE)
+        g.Draw("PZ SAME")  # points + asymmetric errors, no connecting lines
+        leg.AddEntry(g, f"{labels[i]}", "p")
+        keep.append(g)
 
     leg.Draw(); c.Update()
     return keep
 
-def main():
-    if any(e <= 0 for e in BIN_EDGES):
-        print("All BIN_EDGES must be > 0 for log-x."); sys.exit(1)
-
-    os.makedirs(os.path.dirname(OUT_PDF), exist_ok=True)
-    style()
-    colors = [ROOT.kBlack, ROOT.kRed+1, ROOT.kBlue+1, ROOT.kGreen+2, ROOT.kMagenta+2]
-
-    c = ROOT.TCanvas("c", "c", 900, 700)
-    c.Print(OUT_PDF + "[")
+def write_pdf(filename, eff_idms, eff_muid, colors, is_data=True):
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    c = ROOT.TCanvas("c_"+("data" if is_data else "mc"), "c", 900, 700)
+    c.Print(filename + "[")
 
     # 1) ε(ID||MS)
-    eff_d_IDMS, eff_m_IDMS = get_efficiencies("ID_MS")
-    _k = draw_eff_page(c, r"#varepsilon(ID||MS)", BIN_EDGES, eff_d_IDMS, eff_m_IDMS, colors)
-    c.Print(OUT_PDF)
+    _k1 = draw_single_category_page(
+        c, r"#varepsilon(ID||MS)", BIN_EDGES, eff_idms, colors,
+        "frame_idms_" + ("data" if is_data else "mc"),
+        label_prefix=("data" if is_data else "mc"),
+        marker_style=(20 if is_data else 24),
+        line_width=(LINE_WIDTH_DATA if is_data else LINE_WIDTH_MC),
+    )
+    c.Print(filename)
 
     # 2) ε(μ||ID)
-    eff_d_muID, eff_m_muID = get_efficiencies("mu_ID")
-    _k = draw_eff_page(c, r"#varepsilon(#mu||ID)", BIN_EDGES, eff_d_muID, eff_m_muID, colors)
-    c.Print(OUT_PDF)
+    _k2 = draw_single_category_page(
+        c, r"#varepsilon(#mu||ID)", BIN_EDGES, eff_muid, colors,
+        "frame_muid_" + ("data" if is_data else "mc"),
+        label_prefix=("data" if is_data else "mc"),
+        marker_style=(20 if is_data else 24),
+        line_width=(LINE_WIDTH_DATA if is_data else LINE_WIDTH_MC),
+    )
+    c.Print(filename)
 
-    # 3) Total ε(μ) = ε(ID||MS) × ε(μ||ID)
-    c.Clear(); c.SetLogx(True); c.SetLogy(False)
-    frame = ROOT.TH1F("frame_total", "", len(BIN_EDGES)-1, array('d', BIN_EDGES))
+    # 3) Total ε(μ)
+    c.Clear(); c.SetLogx(True); c.SetLogy(False); c.SetGridx(True); c.SetGridy(True)
+    frame = ROOT.TH1F("frame_total_" + ("data" if is_data else "mc"),
+                      "", len(BIN_EDGES)-1, array('d', BIN_EDGES))
     frame.SetMinimum(0.0); frame.SetMaximum(1.1)
     frame.SetTitle(r"Total efficiency  #varepsilon(#mu) = #varepsilon(ID||MS) #times #varepsilon(#mu||ID)")
-    frame.GetXaxis().SetTitle("p_{T} [GeV]")
-    frame.GetYaxis().SetTitle("Efficiency")
+    frame.GetXaxis().SetTitle("p_{T} [GeV]"); frame.GetYaxis().SetTitle("Efficiency")
     frame.Draw()
 
-    leg = ROOT.TLegend(0.60, 0.15, 0.88, 0.38)
+    leg = ROOT.TLegend(0.60, 0.15, 0.90, 0.50)
     leg.SetBorderSize(0); leg.SetFillStyle(0)
-    keep = []
+    keep = [frame, leg]
 
     for i in range(5):
         wp = f"w{i}"
-        if wp not in eff_d_IDMS or wp not in eff_d_muID:
-            continue
-        gD = combine_total_eff(eff_d_IDMS[wp], eff_d_muID[wp])
-        gD.SetLineColor(colors[i]); gD.SetMarkerColor(colors[i])
-        gD.SetMarkerStyle(20); gD.SetMarkerSize(0.8)
-        gD.Draw("P SAME"); keep.append(gD)
-        leg.AddEntry(gD, f"data w{i}", "p")
+        if wp in eff_idms and wp in eff_muid:
+            gT = combine_total_eff(eff_idms[wp], eff_muid[wp])
+            gT.SetLineColor(colors[i]); gT.SetLineWidth(LINE_WIDTH_DATA if is_data else LINE_WIDTH_MC)
+            gT.SetMarkerColor(colors[i]); gT.SetMarkerStyle(20 if is_data else 24); gT.SetMarkerSize(MARKER_SIZE)
+            gT.Draw("PZ SAME"); leg.AddEntry(gT, f"{labels[i]}", "p")
+            keep.append(gT)
 
-        if wp in eff_m_IDMS and wp in eff_m_muID:
-            gM = combine_total_eff(eff_m_IDMS[wp], eff_m_muID[wp])
-            gM.SetLineColor(colors[i]); gM.SetLineStyle(2)
-            gM.Draw("L SAME"); keep.append(gM)
-            leg.AddEntry(gM, f"mc w{i}", "l")
+    leg.Draw(); c.Update()
+    c.Print(filename)
+    c.Print(filename + "]")
 
-    leg.Draw()
-    c.Print(OUT_PDF)
+def main():
+    if any(e <= 0 for e in BIN_EDGES):
+        print("All BIN_EDGES must be > 0 for log-x."); sys.exit(1)
+    style()
+    colors = [ROOT.kBlack, ROOT.kRed+1, ROOT.kBlue+1, ROOT.kGreen+2, ROOT.kMagenta+2]
 
-    c.Print(OUT_PDF + "]")
-    print(f"Wrote: {OUT_PDF}")
+    # Build efficiencies once
+    eff_d_IDMS, eff_m_IDMS   = get_efficiencies("ID_MS")
+    eff_d_muID, eff_m_muID   = get_efficiencies("mu_ID")
+
+    # Data-only PDF
+    write_pdf(OUT_PDF_DATA, eff_d_IDMS, eff_d_muID, colors, is_data=True)
+
+    # MC-only PDF
+    write_pdf(OUT_PDF_MC,   eff_m_IDMS, eff_m_muID, colors, is_data=False)
+
+    print(f"Wrote: {OUT_PDF_DATA}")
+    print(f"Wrote: {OUT_PDF_MC}")
 
 if __name__ == "__main__":
     main()
