@@ -6,7 +6,7 @@ Float_t abs_t(Float_t x){
     return x;
 }
 
-G2TauTree::G2TauTree(std::string fname, bool TPType_, double sigma) : fChain(0) 
+G2TauTree::G2TauTree(std::string fname, bool TPType_, double sigma, int wp) : fChain(0) 
 {
     weight = 1.0;
     if(sigma>0.0){
@@ -15,18 +15,43 @@ G2TauTree::G2TauTree(std::string fname, bool TPType_, double sigma) : fChain(0)
         weight = L*sigma/N;
     }
     
+    // wp:
+    // 0 - initial analysis
+    // 1 - tight wp
+    // 2 - tight + aco<0.01
+    // 3 - tight + aco<0.03
+    // 4 - both zdc < 1 TeV
+    check_zdc = false;
+    if(wp==4)   check_zdc = true;
+
+    wpTight = true;
+    if(wp==0 || wp==4)  wpTight = false;
+
+    switch(wp){
+        default:
+            aco_threshold = 0.02;
+            break;
+        case 2:
+            aco_threshold = 0.01;
+            break;
+        case 3:
+            aco_threshold = 0.03;
+    }
+
+
     TPType = TPType_;
     input = "./input/"+fname;
     if(TPType)
-        output = "output/mu_ID/"+fname;
+        output = "output/mu_ID/w"+to_string(wp)+"/"+fname;
     else 
-        output = "output/ID_MS/"+fname;
+        output = "output/ID_MS/w"+to_string(wp)+"/"+fname;
     std::cout<<"input: "<<input<<"\n"<<"output: "<<output<<std::endl;
     // 0 - ID|MS; 1 - mu|ID
     if(!TPType)
         std::cout<<"ID||MS analysis"<<std::endl;
     else
         std::cout<<"MU||id analysis"<<std::endl;
+    std::cout<<"wp = "<<wp<<std::endl;
     TTree * tree;
     TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(input.c_str());
     if (!f || !f->IsOpen()) {
@@ -61,6 +86,7 @@ void G2TauTree::Loop()
     std::vector<Float_t> *tag_eta  = new std::vector<Float_t>();
 
     std::vector<Float_t> *probe_pt  = new std::vector<Float_t>();
+    std::vector<Float_t> *probe_prematch_pt  = new std::vector<Float_t>();
     std::vector<Float_t> *probe_phi  = new std::vector<Float_t>();
     std::vector<Float_t> *probe_eta  = new std::vector<Float_t>();
     std::vector<Float_t> *probe_aco_presel = new std::vector<Float_t>();
@@ -69,6 +95,8 @@ void G2TauTree::Loop()
     std::vector<Float_t> *TPpair_dR_postsel = new std::vector<Float_t>();
     std::vector<Float_t> *probe_d0_presel = new std::vector<Float_t>();
     std::vector<Float_t> *probe_d0_postsel = new std::vector<Float_t>();
+    std::vector<Float_t> *probe_dR_presel = new std::vector<Float_t>();
+    std::vector<Float_t> *probe_dR_postsel = new std::vector<Float_t>();
 
     std::vector<Float_t> *eps_pass = new std::vector<Float_t>(); 
     std::vector<Float_t> *eps_qEta_pass = new std::vector<Float_t>();
@@ -93,12 +121,15 @@ void G2TauTree::Loop()
     output_tree->Branch("tag_eta", &tag_eta);
 
     output_tree->Branch("probe_pt", &probe_pt);     // -||- of passed probes
+    // output_tree->Branch("probe_prematch_pt", &probe_prematch_pt);     // -||- of passed probes
     output_tree->Branch("probe_phi", &probe_phi);
     output_tree->Branch("probe_eta", &probe_eta);
     output_tree->Branch("probe_aco_presel", &probe_aco_presel);
     output_tree->Branch("probe_aco_postsel", &probe_aco_postsel);
     output_tree->Branch("probe_d0_presel", &probe_d0_presel);
     output_tree->Branch("probe_d0_postsel", &probe_d0_postsel);
+    output_tree->Branch("probe_dR_presel", &probe_dR_presel);
+    output_tree->Branch("probe_dR_postsel", &probe_dR_postsel);
 
     output_tree->Branch("eps_pass", &eps_pass);
     output_tree->Branch("eps_qEta_pass", &eps_qEta_pass);
@@ -139,12 +170,15 @@ void G2TauTree::Loop()
         tag_eta->clear();
 
         probe_pt->clear();
+        // probe_prematch_pt->clear();
         probe_phi->clear();
         probe_eta->clear();
         probe_aco_presel->clear();
         probe_aco_postsel->clear();
         probe_d0_presel->clear();
         probe_d0_postsel->clear();
+        probe_dR_presel->clear();
+        probe_dR_postsel->clear();
 
         // passed pairs
         eps_pass->clear(); 
@@ -165,20 +199,26 @@ void G2TauTree::Loop()
 
         //eps
         eps_cutflow->push_back(0);
-
         //passes GRL: all data from file does
         if(!passed_HLT_mu3_hi_FgapAC5_L1MU3V_VTE50){
             output_tree->Fill();
             continue;
         }
-        
         eps_cutflow->push_back(1);
+        if(check_zdc)
+        if(!(zdc_ene_a<1e3 || zdc_ene_c<1e3)){
+            output_tree->Fill();
+            continue;
+        }
+        
+        eps_cutflow->push_back(2);
         //at least 1 muon
         if(!(nMuon >= 1)){
             output_tree->Fill();
             continue;
         } 
-        eps_cutflow->push_back(2);
+
+        eps_cutflow->push_back(3);
         // up to 2 tracks
         // if(!(track_n<=2))
         if(!(track_n==2 || track_n==1))
@@ -186,14 +226,18 @@ void G2TauTree::Loop()
             output_tree->Fill();
             continue;
         } 
-        eps_cutflow->push_back(3);
+        eps_cutflow->push_back(4);
 
         //finding tag
         for(int tag = 0; tag<nMuon; tag++)
         {
             // if(!(muon_is_Loose->at(tag))) continue;
-            if(!(muon_is_LowPt->at(tag))) continue;
-            //muon_is_Tight 
+            if(wpTight){
+                if(!(muon_is_Tight->at(tag))) continue;
+            }
+            else{
+                if(!(muon_is_LowPt->at(tag))) continue; // is_LowPt should have the Loose working point
+            }
             if(!(abs(muon_eta->at(tag))<2.4)) continue;
             if(!(muon_pt->at(tag)>3)) continue;
             if(!(abs(muon_d0->at(tag))<2)) continue; //1
@@ -217,7 +261,7 @@ void G2TauTree::Loop()
 
 
                 TPpair_dR_presel->push_back(tp_dR);
-                if(!(tp_dR>1)) continue;              //3
+                if(!(tp_dR>1)) continue;
                 TPpair_dR_postsel->push_back(tp_dR);
 
                 probe_d0_presel->push_back(MSmuon_d0->at(probe));
@@ -229,24 +273,28 @@ void G2TauTree::Loop()
                 TPpair_pt_postsel->push_back(v_pair.Pt());
 
                 probe_aco_presel->push_back(aco);
-                if(!(aco<0.02)) continue;
+                if(!(aco<aco_threshold)) continue;
                 probe_aco_postsel->push_back(aco);
                 
                 TPpair_M_postsel->push_back(v_pair.M());
                 eps_total->push_back(MSmuon_pt->at(probe));
                 eps_qEta_total->push_back(MSmuon_eta->at(probe));
 
-                
+                // probe_prematch_pt->push_back(MSmuon_pt->at(probe));
                 for(int id = 0; id<track_n; id++)
                 {
                     TLorentzVector v_id;
                     v_id.SetPtEtaPhiM(track_pt->at(id), track_eta->at(id), track_phi->at(id), M_mu);
 
-                    if(!(track_is_matched_to_muon->at(id))) continue;  // instead of _is_loose_muon  // 7
-                    // check loosePrimary  //4
-                    if(!(muon_charge->at(tag)*track_charge->at(id)<0)) continue; // bc no MSmuon_charge //5
+                    if(!(track_is_matched_to_muon->at(id))) continue;  // instead of _is_loose_muon
+                    // check loosePrimary
+                    if(!(muon_charge->at(tag)*track_charge->at(id)<0)) continue; // bc no MSmuon_charge
                     if(!(abs(track_d0->at(id))<2)) continue;
-                    if(!(v_probe.DeltaR(v_id)<0.1)) continue;
+
+                    double probe_dR = v_probe.DeltaR(v_id);
+                    probe_dR_presel->push_back(probe_dR);
+                    if(!(probe_dR<0.1)) continue;
+                    probe_dR_postsel->push_back(probe_dR);
 
                     TPpair_n++;
                     tag_pt->push_back(muon_pt->at(tag));
@@ -277,12 +325,7 @@ void G2TauTree::Loop()
                 
             
                 // distributions before any selections
-                // TPpair_M_presel->push_back(v_pair.M());
-
-                TPpair_dR_presel->push_back(tp_dR);
-                // if(!(tp_dR>1)) continue; 
-                TPpair_dR_postsel->push_back(tp_dR);
-                // !!! is this needed???
+                TPpair_M_presel->push_back(v_pair.M());
 
                 if(!(muon_charge->at(tag)*track_charge->at(probe)<0)) continue;
                 // if(!(track_is_LoosePrimary->at(probe))) continue;
@@ -297,19 +340,34 @@ void G2TauTree::Loop()
                 TPpair_pt_postsel->push_back(v_pair.Pt());
 
                 probe_aco_presel->push_back(aco);
-                if(!(aco<0.02)) continue;
+                if(!(aco<aco_threshold)) continue;
                 probe_aco_postsel->push_back(aco);
                     
 
                 eps_qEta_total->push_back(track_eta->at(probe)*track_charge->at(probe));
                 eps_total->push_back(track_pt->at(probe));
+                // probe_prematch_pt->push_back(track_pt->at(probe));
 
                 for(int m_LPt = 0; m_LPt < nMuon; m_LPt++)
                 {
                     TLorentzVector v_m_LPt;
                     v_m_LPt.SetPtEtaPhiM(muon_pt->at(m_LPt), muon_eta->at(m_LPt), muon_phi->at(m_LPt), M_mu);
-                    if(!(v_probe.DeltaR(v_m_LPt)<0.01)) continue;
-                    if(!(muon_is_LowPt)) continue; // 5
+
+                    double probe_dR = v_probe.DeltaR(v_m_LPt);
+                    probe_dR_presel->push_back(probe_dR);
+                    if(!(probe_dR<0.01)) continue;
+                    probe_dR_postsel->push_back(probe_dR);
+
+                    // // probe is tight
+                    // if(wpTight){
+                        // if(!(muon_is_Tight->at(m_LPt))) continue;
+                    // }
+                    // else{
+                        // if(!(muon_is_LowPt->at(m_LPt))) continue;
+                    // }
+
+                    // not tight
+                    if(!(muon_is_LowPt->at(m_LPt))) continue;
 
 
                     TPpair_n++;
@@ -337,7 +395,7 @@ void G2TauTree::Loop()
             output_tree->Fill();
             continue;
         } 
-        eps_cutflow->push_back(4);
+        eps_cutflow->push_back(5);
 
         
 
@@ -379,6 +437,8 @@ void G2TauTree::Loop()
     delete probe_aco_postsel;
     delete probe_d0_presel;
     delete probe_d0_postsel;
+    delete probe_dR_presel;
+    delete probe_dR_postsel;
 
 
     output_tree->Write();

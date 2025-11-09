@@ -25,6 +25,8 @@ HIST_CONFIG = {
     "probe_aco_postsel":    True,
     "probe_d0_presel":      True,
     "probe_d0_postsel":     True,
+    "probe_dR_presel":      False,
+    "probe_dR_postsel":     False,
 
 
     "TPpair_pt_presel":     True,
@@ -43,6 +45,13 @@ labels = [
     "Tight WP, aco<0.01",
     "Tight WP, aco<0.03",
     "ZDC cuts"
+]
+
+markers_data = [
+    20, 21, 22, 23, 29
+]
+markers_mc = [
+    24, 25, 26, 27, 30
 ]
 # ------------------------
 
@@ -84,7 +93,7 @@ def _style_mc(h, color):
     h.SetLineStyle(2)
     h.SetLineWidth(2)
 
-def _draw_category_page(canvas, out_pdf, hname, use_logy, items, colors, title_prefix, legend_prefix):
+def _draw_category_page(canvas, out_pdf, hname, use_logy, items, colors, title_prefix, legend_prefix, is_data):
     """
     items: list of (wp_index, TH1) for one category (data OR mc)
     """
@@ -113,6 +122,9 @@ def _draw_category_page(canvas, out_pdf, hname, use_logy, items, colors, title_p
     leg = ROOT.TLegend(0.60, 0.70, 0.88, 0.88)
     leg.SetBorderSize(0); leg.SetFillStyle(0)
     for wp_idx, h in items:
+        h.SetMarkerStyle(markers_data[wp_idx] if is_data else markers_mc[wp_idx])
+        h.SetMarkerSize(2)
+        h.SetMarkerColor(colors[wp_idx])
         lbl = labels[wp_idx] if wp_idx < len(labels) else f"w{wp_idx}"
         leg.AddEntry(h, f"{legend_prefix} {lbl}", "lep")
     leg.Draw()
@@ -121,7 +133,7 @@ def _draw_category_page(canvas, out_pdf, hname, use_logy, items, colors, title_p
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python plot_wp_split.py <ID_MS|mu_ID>")
+        print("Usage: python3 plotHistoWP.py <ID_MS|mu_ID>")
         sys.exit(1)
 
     analysis = sys.argv[1]
@@ -168,9 +180,9 @@ def main():
                 mc_items.append((i, hmc))
 
         # Data page for this histogram
-        _draw_category_page(c, out_pdf_data, hname, use_logy, data_items, colors, analysis, "Data")
+        _draw_category_page(c, out_pdf_data, hname, use_logy, data_items, colors, analysis, "Data", True)
         # MC page for this histogram
-        _draw_category_page(c, out_pdf_mc,   hname, use_logy, mc_items,   colors, analysis, "MC")
+        _draw_category_page(c, out_pdf_mc,   hname, use_logy, mc_items, colors, analysis, "MC", False)
 
     # Close PDFs
     c.Print(out_pdf_data + "]")

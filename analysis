@@ -1,9 +1,9 @@
 # !/bin/bash
 source ~/root/bin/thisroot.sh
+# set -euo pipefail
 
 if [ $# -eq 0 ]; then
-  echo "Usage: $0 [-s] [-m] [-d] [-g] [-p] [-e] [-c] [-b] [-h]"
-  echo "  -s    Setup environment"
+  echo "Usage: $0 [-m] [-d] [-g] [-p] [-e] [-c] [-b] [-h]"
   echo "  -m    Analyse MC data"
   echo "  -d    Analyse real data"
   echo "  -g    Generate histograms"
@@ -15,68 +15,70 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
-while getopts "smdgpecbh" opt; do
+while getopts "mdgpecbh" opt; do
   case $opt in
-    s)
-        source ~/root/bin/thisroot.sh
-    ;;
     m)
-        # rm ./output/ID_MS/mc_4m7.root
-        # rm ./output/ID_MS/mc_7m20.root
-        # rm ./output/ID_MS/mc_20m.root
-
-        # rm ./output/mu_ID/mc_4m7.root
-        # rm ./output/mu_ID/mc_7m20.root
-        # rm ./output/mu_ID/mc_20m.root
-
-        # rm ./output/ID_MS/mc.root
-        # rm ./output/mu_ID/mc.root
         echo "Looping MC data"
+        
+        for x in {0..4}; do
+            echo "(MC) Analysing wp=$x"
+            root -l -q "G2TauTree.C(\"mc_4m7.root\", 0, 925, $x)"
+            root -l -q "G2TauTree.C(\"mc_4m7.root\", 1, 925, $x)"
 
-        root -l -q 'G2TauTree.C("mc_4m7.root", 0, 925)'
-        root -l -q 'G2TauTree.C("mc_4m7.root", 1, 925)'
+            root -l -q "G2TauTree.C(\"mc_7m20.root\", 0, 265, $x)"
+            root -l -q "G2TauTree.C(\"mc_7m20.root\", 1, 265, $x)"
 
-        root -l -q 'G2TauTree.C("mc_7m20.root", 0, 265)'
-        root -l -q 'G2TauTree.C("mc_7m20.root", 1, 265)'
+            root -l -q "G2TauTree.C(\"mc_20m.root\", 0, 9.74, $x)"
+            root -l -q "G2TauTree.C(\"mc_20m.root\", 1, 9.74, $x)"
 
-        root -l -q 'G2TauTree.C("mc_20m.root", 0, 9.74)'
-        root -l -q 'G2TauTree.C("mc_20m.root", 1, 9.74)'
+            echo "Merging files"
+            hadd -f -v 0 ./output/ID_MS/w"${x}"/mc.root ./output/ID_MS/w"${x}"/mc_4m7.root ./output/ID_MS/w"${x}"/mc_7m20.root ./output/ID_MS/w"${x}"/mc_20m.root
+            hadd -f -v 0 ./output/mu_ID/w"${x}"/mc.root ./output/mu_ID/w"${x}"/mc_4m7.root ./output/mu_ID/w"${x}"/mc_7m20.root ./output/mu_ID/w"${x}"/mc_20m.root
+        done
 
-        echo "Merging files"
-        hadd -f -v 0 ./output/ID_MS/mc.root ./output/ID_MS/mc_4m7.root ./output/ID_MS/mc_7m20.root ./output/ID_MS/mc_20m.root
-        hadd -f -v 0 ./output/mu_ID/mc.root ./output/mu_ID/mc_4m7.root ./output/mu_ID/mc_7m20.root ./output/mu_ID/mc_20m.root
         ;;
     d)
         # rm ./output/ID_MS/data23.root
         # rm ./output/mu_ID/data23.root
         echo "Generating data histograms"
-        root -l -q 'G2TauTree.C("data23.root", 0, 0.0)'
-        root -l -q 'G2TauTree.C("data23.root", 1, 0.0)'
+        for x in {0..4}; do
+            echo "(Data) Analysing wp=$x"
+            root -l -q "G2TauTree.C(\"data23.root\", 0, 0.0, $x)"
+            root -l -q "G2TauTree.C(\"data23.root\", 1, 0.0, $x)"
+        done
         ;;
     g)
         echo "Generating histograms"
-        python3 genHistograms.py ./output/ID_MS/mc.root ./output/ID_MS/mc_histograms.root
-        # python3 genHistograms.py ./output/ID_MS/data23.root ./output/ID_MS/data23_histograms.root
-
-        # python3 genHistograms.py ./output/mu_ID/mc.root ./output/mu_ID/mc_histograms.root
-        python3 genHistograms.py ./output/mu_ID/data23.root ./output/mu_ID/data23_histograms.root
+        # for x in {0..4}; do
+        #     python3 genHistograms.py ./output/ID_MS/w"${x}"/data23.root ./output/ID_MS/w"${x}"/data23_histograms.root
+        #     python3 genHistograms.py ./output/ID_MS/w"${x}"/mc.root ./output/ID_MS/w"${x}"/mc_histograms.root
+        #     python3 genHistograms.py ./output/mu_ID/w"${x}"/data23.root ./output/mu_ID/w"${x}"/data23_histograms.root
+        #     python3 genHistograms.py ./output/mu_ID/w"${x}"/mc.root ./output/mu_ID/w"${x}"/mc_histograms.root
+        # done
+        python3 genHistograms.py ./output/ID_MS/w0/mc.root ./output/ID_MS/w0/mc_histograms.root
+        python3 genHistograms.py ./output/mu_ID/w0/mc.root ./output/mu_ID/w0/mc_histograms.root
+        python3 genHistograms.py ./output/ID_MS/w0/data23.root ./output/ID_MS/w0/data23_histograms.root
+        python3 genHistograms.py ./output/mu_ID/w0/data23.root ./output/mu_ID/w0/data23_histograms.root
         ;;
     e)
         echo "Making efficiency plots"
-        python3 plotEff.py \
-        --id-ms-data ./output/ID_MS/data23_histograms.root \
-        --id-ms-mc   ./output/ID_MS/mc_histograms.root \
-        --mu-id-data ./output/mu_ID/data23_histograms.root \
-        --mu-id-mc   ./output/mu_ID/mc_histograms.root \
-        --bins 1.0,2.0,2.5,3.0,3.5,4.0,4.5,5.5,7.5,10.0,12.5,15.0,50.0 \
-        --out ./histograms/efficiency.pdf
+        # python3 plotEff.py \
+        # --id-ms-data ./output/ID_MS/data23_histograms.root \
+        # --id-ms-mc   ./output/ID_MS/mc_histograms.root \
+        # --mu-id-data ./output/mu_ID/data23_histograms.root \
+        # --mu-id-mc   ./output/mu_ID/mc_histograms.root \
+        # --bins 1.0,2.0,2.5,3.0,3.5,4.0,4.5,5.5,7.5,10.0,12.5,15.0,50.0 \
+        # --out ./histograms/efficiency.pdf
+        python3 plotEffWP.py
         ;;
     p)
         echo "Plotting histograms"
         # python3 plotHistograms.py ./output/ID_MS/data23_histograms.root ./output/ID_MS/mc_histograms.root ./histograms/ID_MS_compare.pdf
         # python3 plotHistograms.py ./output/mu_ID/data23_histograms.root ./output/mu_ID/mc_histograms.root ./histograms/mu_ID_compare.pdf
-        python3 plotHistograms.py ./output/ID_MS/data23_histograms.root ./output/ID_MS/mc_histograms.root ./histograms/ID_MS_compare.pdf
-        python3 plotHistograms.py ./output/mu_ID/data23_histograms.root ./output/mu_ID/mc_histograms.root ./histograms/mu_ID_compare.pdf
+        # python3 plotHistograms.py ./output/ID_MS/data23_histograms.root ./output/ID_MS/mc_histograms.root ./histograms/ID_MS_compare.pdf
+        # python3 plotHistograms.py ./output/mu_ID/data23_histograms.root ./output/mu_ID/mc_histograms.root ./histograms/mu_ID_compare.pdf
+        python3 plotHistoWP.py ID_MS
+        python3 plotHistoWP.py mu_ID
         ;;
     c)
         echo "Plotting cutflows"

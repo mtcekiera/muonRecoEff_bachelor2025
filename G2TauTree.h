@@ -42,6 +42,11 @@ public :
 
    double weight;
 
+   Bool_t wpTight;
+   Double_t aco_threshold;
+   Bool_t check_zdc;
+
+
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
@@ -752,7 +757,7 @@ public :
    TBranch        *b_muon_pt_syst_MUON_SCALE__1down;   //!
    TBranch        *b_muon_pt_syst_MUON_SCALE__1up;   //!
 
-   G2TauTree(std::string, bool, double);
+   G2TauTree(std::string, bool, double, int);
    virtual ~G2TauTree();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);

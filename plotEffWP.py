@@ -16,7 +16,7 @@ OUT_PDF_DATA = "histograms/wpEfficiencies_data.pdf"
 OUT_PDF_MC   = "histograms/wpEfficiencies_mc.pdf"
 
 # Styling
-MARKER_SIZE     = 1.1
+MARKER_SIZE     = 2
 LINE_WIDTH_DATA = 2
 LINE_WIDTH_MC   = 3
 # ---------------------------------------------------------
@@ -26,6 +26,12 @@ labels = [
     "Tight WP, aco<0.01",    
     "Tight WP, aco<0.03",
     "ZDC cuts"    
+]
+markers_data = [
+    20, 21, 22, 23, 29
+]
+markers_mc = [
+    24, 25, 26, 27, 30
 ]
 def style():
     s = ROOT.gStyle
@@ -102,7 +108,7 @@ def combine_total_eff(eff1, eff2):
     return gr
 
 def draw_single_category_page(c, title, edges, eff_dict, colors, frame_name,
-                              label_prefix="data", marker_style=20, line_width=2):
+                              label_prefix="data", marker_style=markers_data, line_width=2):
     c.Clear(); c.SetLogx(True); c.SetLogy(False); c.SetGridx(True); c.SetGridy(True)
 
     frame = ROOT.TH1F(frame_name, "", len(edges)-1, array('d', edges))
@@ -122,7 +128,7 @@ def draw_single_category_page(c, title, edges, eff_dict, colors, frame_name,
             continue
         g = eff_dict[wp].CreateGraph()
         g.SetLineColor(colors[i]); g.SetLineWidth(line_width)  # error-bar thickness
-        g.SetMarkerColor(colors[i]); g.SetMarkerStyle(marker_style); g.SetMarkerSize(MARKER_SIZE)
+        g.SetMarkerColor(colors[i]); g.SetMarkerStyle(marker_style[i]); g.SetMarkerSize(MARKER_SIZE)
         g.Draw("PZ SAME")  # points + asymmetric errors, no connecting lines
         leg.AddEntry(g, f"{labels[i]}", "p")
         keep.append(g)
@@ -140,7 +146,7 @@ def write_pdf(filename, eff_idms, eff_muid, colors, is_data=True):
         c, r"#varepsilon(ID||MS)", BIN_EDGES, eff_idms, colors,
         "frame_idms_" + ("data" if is_data else "mc"),
         label_prefix=("data" if is_data else "mc"),
-        marker_style=(20 if is_data else 24),
+        marker_style=(markers_data if is_data else markers_mc),
         line_width=(LINE_WIDTH_DATA if is_data else LINE_WIDTH_MC),
     )
     c.Print(filename)
@@ -150,7 +156,7 @@ def write_pdf(filename, eff_idms, eff_muid, colors, is_data=True):
         c, r"#varepsilon(#mu||ID)", BIN_EDGES, eff_muid, colors,
         "frame_muid_" + ("data" if is_data else "mc"),
         label_prefix=("data" if is_data else "mc"),
-        marker_style=(20 if is_data else 24),
+        marker_style=(markers_data if is_data else markers_mc),
         line_width=(LINE_WIDTH_DATA if is_data else LINE_WIDTH_MC),
     )
     c.Print(filename)
@@ -173,7 +179,7 @@ def write_pdf(filename, eff_idms, eff_muid, colors, is_data=True):
         if wp in eff_idms and wp in eff_muid:
             gT = combine_total_eff(eff_idms[wp], eff_muid[wp])
             gT.SetLineColor(colors[i]); gT.SetLineWidth(LINE_WIDTH_DATA if is_data else LINE_WIDTH_MC)
-            gT.SetMarkerColor(colors[i]); gT.SetMarkerStyle(20 if is_data else 24); gT.SetMarkerSize(MARKER_SIZE)
+            gT.SetMarkerColor(colors[i]); gT.SetMarkerStyle(markers_data[i] if is_data else markers_mc[i]); gT.SetMarkerSize(MARKER_SIZE)
             gT.Draw("PZ SAME"); leg.AddEntry(gT, f"{labels[i]}", "p")
             keep.append(gT)
 
