@@ -6,7 +6,7 @@ Float_t abs_t(Float_t x){
     return x;
 }
 
-G2TauTree::G2TauTree(std::string fname, bool TPType_, double sigma, int wp) : fChain(0) 
+G2TauTree::G2TauTree(std::string input_fname, std::string out_fname, bool TPType_, double sigma, int wp) : fChain(0) 
 {
     weight = 1.0;
     if(sigma>0.0){
@@ -18,14 +18,18 @@ G2TauTree::G2TauTree(std::string fname, bool TPType_, double sigma, int wp) : fC
     // wp:
     // 0 - initial analysis
     // 1 - tight wp
-    // 2 - tight + aco<0.01
-    // 3 - tight + aco<0.03
+    // 2 - aco<0.01
+    // 3 - aco<0.03
     // 4 - both zdc < 1 TeV
+    // 5 - no d0 cuts
     check_zdc = false;
     if(wp==4)   check_zdc = true;
 
-    wpTight = true;
-    if(wp==0 || wp==4)  wpTight = false;
+    wpTight = false;
+    if(wp==1)  wpTight = true;
+
+    check_d0 = true;
+    if(wp==5)   check_d0 = false;
 
     switch(wp){
         default:
@@ -38,14 +42,8 @@ G2TauTree::G2TauTree(std::string fname, bool TPType_, double sigma, int wp) : fC
             aco_threshold = 0.03;
     }
 
-
-    TPType = TPType_;
-    input = "./input/"+fname;
-    if(TPType)
-        output = "output/mu_ID/w"+to_string(wp)+"/"+fname;
-    else 
-        output = "output/ID_MS/w"+to_string(wp)+"/"+fname;
-    std::cout<<"input: "<<input<<"\n"<<"output: "<<output<<std::endl;
+    output_fname = out_fname;
+    std::cout<<"input: "<<input_fname<<"\n"<<"output: "<<output_fname<<std::endl;
     // 0 - ID|MS; 1 - mu|ID
     if(!TPType)
         std::cout<<"ID||MS analysis"<<std::endl;
@@ -53,9 +51,9 @@ G2TauTree::G2TauTree(std::string fname, bool TPType_, double sigma, int wp) : fC
         std::cout<<"MU||id analysis"<<std::endl;
     std::cout<<"wp = "<<wp<<std::endl;
     TTree * tree;
-    TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(input.c_str());
+    TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(input_fname.c_str());
     if (!f || !f->IsOpen()) {
-        f = new TFile(input.c_str());
+        f = new TFile(input_fname.c_str());
     }
     f->GetObject("G2TauTree",tree);
 
@@ -71,7 +69,7 @@ void G2TauTree::Loop()
     if (fChain == 0) return;
 
     // commands for output
-    TFile* output_file = new TFile(output.c_str(), "RECREATE");
+    TFile* output_file = new TFile(output_fname.c_str(), "RECREATE");
 
     TTree *output_tree = new TTree("G2TauTree_output", "Analysed G2TauTree data");
 
@@ -240,7 +238,7 @@ void G2TauTree::Loop()
             }
             if(!(abs(muon_eta->at(tag))<2.4)) continue;
             if(!(muon_pt->at(tag)>3)) continue;
-            if(!(abs(muon_d0->at(tag))<2)) continue; //1
+            if(check_d0){if(!(abs(muon_d0->at(tag))<2)) continue;} //1
 
             /////////////////// finding ID||MS probes /////////////////////////////////////
 
@@ -265,7 +263,7 @@ void G2TauTree::Loop()
                 TPpair_dR_postsel->push_back(tp_dR);
 
                 probe_d0_presel->push_back(MSmuon_d0->at(probe));
-                if(!(abs(MSmuon_d0->at(probe))<2)) continue;
+                if(check_d0){if(!(abs(MSmuon_d0->at(probe))<2)) continue;}
                 probe_d0_postsel->push_back(MSmuon_d0->at(probe));
 
                 TPpair_pt_presel->push_back(v_pair.Pt());
@@ -287,9 +285,10 @@ void G2TauTree::Loop()
                     v_id.SetPtEtaPhiM(track_pt->at(id), track_eta->at(id), track_phi->at(id), M_mu);
 
                     if(!(track_is_matched_to_muon->at(id))) continue;  // instead of _is_loose_muon
+                    
                     // check loosePrimary
                     if(!(muon_charge->at(tag)*track_charge->at(id)<0)) continue; // bc no MSmuon_charge
-                    if(!(abs(track_d0->at(id))<2)) continue;
+                    if(check_d0){if(!(abs(track_d0->at(id))<2)) continue;}
 
                     double probe_dR = v_probe.DeltaR(v_id);
                     probe_dR_presel->push_back(probe_dR);
@@ -332,7 +331,7 @@ void G2TauTree::Loop()
                 if(!(track_is_matched_to_muon)) continue;
 
                 probe_d0_presel->push_back(track_d0->at(probe));
-                if(!(abs(track_d0->at(probe))<2)) continue;
+                if(check_d0){if(!(abs(track_d0->at(probe))<2)) continue;}
                 probe_d0_postsel->push_back(track_d0->at(probe));
 
                 TPpair_pt_presel->push_back(v_pair.Pt());
@@ -358,16 +357,16 @@ void G2TauTree::Loop()
                     if(!(probe_dR<0.01)) continue;
                     probe_dR_postsel->push_back(probe_dR);
 
-                    // // probe is tight
-                    // if(wpTight){
-                        // if(!(muon_is_Tight->at(m_LPt))) continue;
-                    // }
-                    // else{
-                        // if(!(muon_is_LowPt->at(m_LPt))) continue;
-                    // }
+                    // probe is tight
+                    if(wpTight){
+                        if(!(muon_is_Tight->at(m_LPt))) continue;
+                    }
+                    else{
+                        if(!(muon_is_LowPt->at(m_LPt))) continue;
+                    }
 
-                    // not tight
-                    if(!(muon_is_LowPt->at(m_LPt))) continue;
+                    // // not tight
+                    // if(!(muon_is_LowPt->at(m_LPt))) continue;
 
 
                     TPpair_n++;

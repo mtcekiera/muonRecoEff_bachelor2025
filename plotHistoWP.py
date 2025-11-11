@@ -42,8 +42,8 @@ HIST_CONFIG = {
 labels = [
     "Initial",
     "Tight WP",
-    "Tight WP, aco<0.01",
-    "Tight WP, aco<0.03",
+    "aco<0.01",
+    "aco<0.03",
     "ZDC cuts"
 ]
 
@@ -132,63 +132,54 @@ def _draw_category_page(canvas, out_pdf, hname, use_logy, items, colors, title_p
     canvas.Print(out_pdf)
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python3 plotHistoWP.py <ID_MS|mu_ID>")
+    if len(sys.argv) not in (4,5):
+        print("Usage: python3 plotHistoWP.py <ID_MS|mu_ID> <input file> <output file> [Data|MC]")
         sys.exit(1)
 
     analysis = sys.argv[1]
+    input_fname = sys.argv[2]
+    out_pdf = sys.argv[3]
+    is_data = True
+    if(len(sys.argv)==5):
+        if(sys.argv[4].lower() == "mc"):
+            is_data = False
+
     base = os.path.join("output", analysis)
     if not os.path.isdir(base):
         print(f"Error: directory '{base}' not found")
         sys.exit(1)
 
-    os.makedirs("histograms", exist_ok=True)
     style()
     c = ROOT.TCanvas("c", "c", 900, 700)
     colors = [ROOT.kBlack, ROOT.kRed+1, ROOT.kBlue+1, ROOT.kGreen+2, ROOT.kMagenta+2]
     wp_dirs = [f"w{i}" for i in range(5)]
 
     # Open two PDFs
-    out_pdf_data = f"histograms/wp_{analysis}_data.pdf"
-    out_pdf_mc   = f"histograms/wp_{analysis}_mc.pdf"
-    c.Print(out_pdf_data + "[")
-    c.Print(out_pdf_mc + "[")
+    c.Print(out_pdf + "[")
 
     for hname, use_logy in HIST_CONFIG.items():
         data_items = []  # (wp_index, hist)
-        mc_items   = []  # (wp_index, hist)
 
         for i, wp in enumerate(wp_dirs):
             wpath = os.path.join(base, wp)
-            data_path = os.path.join(wpath, "data23_histograms.root")
-            mc_path   = os.path.join(wpath, "mc_histograms.root")
-            if not (os.path.exists(data_path) and os.path.exists(mc_path)):
+            data_path = os.path.join(wpath, input_fname)
+            if not (os.path.exists(data_path)):
                 print(f"{wp}: missing ROOT files")
                 continue
 
             fdata = ROOT.TFile.Open(data_path)
-            fmc   = ROOT.TFile.Open(mc_path)
             hdata = get_hist(fdata, hname)
-            hmc   = get_hist(fmc, hname)
-            fdata.Close(); fmc.Close()
+            fdata.Close()
 
             if hdata:
                 _style_data(hdata, colors[i])
                 data_items.append((i, hdata))
-            if hmc:
-                _style_mc(hmc, colors[i])
-                mc_items.append((i, hmc))
 
-        # Data page for this histogram
-        _draw_category_page(c, out_pdf_data, hname, use_logy, data_items, colors, analysis, "Data", True)
-        # MC page for this histogram
-        _draw_category_page(c, out_pdf_mc,   hname, use_logy, mc_items, colors, analysis, "MC", False)
+        _draw_category_page(c,      out_pdf, hname, use_logy, data_items,   colors, analysis, "", True)
+# def     _draw_category_page(canvas, out_pdf, hname, use_logy, items,        colors, title_prefix, legend_prefix, is_data):
 
-    # Close PDFs
-    c.Print(out_pdf_data + "]")
-    c.Print(out_pdf_mc + "]")
-    print(f"Wrote: {out_pdf_data}")
-    print(f"Wrote: {out_pdf_mc}")
+    c.Print(out_pdf + "]")
+    print(f"Wrote: {out_pdf}")
 
 if __name__ == "__main__":
     main()

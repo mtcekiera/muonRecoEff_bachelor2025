@@ -12,8 +12,6 @@ ROOT.TH1.AddDirectory(False)
 BIN_EDGES = [1.0, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.5, 7.5, 10.0, 12.5, 15.0, 50.0]
 HNAME_PASS  = "eps_pass"
 HNAME_TOTAL = "eps_total"
-OUT_PDF_DATA = "histograms/wpEfficiencies_data.pdf"
-OUT_PDF_MC   = "histograms/wpEfficiencies_mc.pdf"
 
 # Styling
 MARKER_SIZE     = 2
@@ -74,21 +72,19 @@ def build_efficiency_single_file(path, hname_pass, hname_total, edges):
     te.SetStatisticOption(ROOT.TEfficiency.kFNormal)  # sane errors for weighted inputs
     return te
 
-def get_efficiencies(analysis):
+def get_efficiencies(analysis, filename):
     base = os.path.join("output", analysis)
-    eff_data, eff_mc = {}, {}
+    eff_data = {}
     for i in range(5):
         wp = f"w{i}"
-        data_path = os.path.join(base, wp, "data23_histograms.root")
-        mc_path   = os.path.join(base, wp, "mc_histograms.root")
-        if not (os.path.exists(data_path) and os.path.exists(mc_path)):
+        data_path = os.path.join(base, wp, filename)
+        print(data_path)
+        if not (os.path.exists(data_path)):
             print(f"Missing files: {analysis}/{wp}")
             continue
         e_d = build_efficiency_single_file(data_path, HNAME_PASS, HNAME_TOTAL, BIN_EDGES)
-        e_m = build_efficiency_single_file(mc_path,   HNAME_PASS, HNAME_TOTAL, BIN_EDGES)
         if e_d: eff_data[wp] = e_d
-        if e_m: eff_mc[wp]   = e_m
-    return eff_data, eff_mc
+    return eff_data
 
 def combine_total_eff(eff1, eff2):
     if eff1 is None or eff2 is None: return None
@@ -193,18 +189,25 @@ def main():
     style()
     colors = [ROOT.kBlack, ROOT.kRed+1, ROOT.kBlue+1, ROOT.kGreen+2, ROOT.kMagenta+2]
 
-    # Build efficiencies once
-    eff_d_IDMS, eff_m_IDMS   = get_efficiencies("ID_MS")
-    eff_d_muID, eff_m_muID   = get_efficiencies("mu_ID")
+    if len(sys.argv) not in (3,4):
+        print("Usage: python3 plotHistoWP.py <file name> <output file name> [data|mc]")
+    
+    filename = sys.argv[1]
+    out_filename = sys.argv[2]
 
-    # Data-only PDF
-    write_pdf(OUT_PDF_DATA, eff_d_IDMS, eff_d_muID, colors, is_data=True)
+    is_data = True
+    if len(sys.argv) == 4:
+        if sys.argv[3].lower() == "mc":
+            is_data = False
+    # Build efficiencies once
+    eff_IDMS   = get_efficiencies("ID_MS", filename)
+    eff_muID   = get_efficiencies("mu_ID", filename)
+
 
     # MC-only PDF
-    write_pdf(OUT_PDF_MC,   eff_m_IDMS, eff_m_muID, colors, is_data=False)
+    write_pdf(out_filename, eff_IDMS, eff_muID, colors, is_data=is_data)
 
-    print(f"Wrote: {OUT_PDF_DATA}")
-    print(f"Wrote: {OUT_PDF_MC}")
+    print(f"Wrote: {out_filename}")
 
 if __name__ == "__main__":
     main()

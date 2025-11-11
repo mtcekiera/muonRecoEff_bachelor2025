@@ -35,9 +35,7 @@ public :
 
    double         M_mu = 0.10566; // mass of a muon in GeV
 
-   std::string input;
-   std::string output;
-
+   std::string output_fname;
    bool TPType; // 0 - ID|MS; 1 - mu|ID
 
    double weight;
@@ -45,6 +43,7 @@ public :
    Bool_t wpTight;
    Double_t aco_threshold;
    Bool_t check_zdc;
+   Bool_t check_d0;
 
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
@@ -757,7 +756,7 @@ public :
    TBranch        *b_muon_pt_syst_MUON_SCALE__1down;   //!
    TBranch        *b_muon_pt_syst_MUON_SCALE__1up;   //!
 
-   G2TauTree(std::string, bool, double, int);
+   G2TauTree(std::string, std::string, bool, double, int);
    virtual ~G2TauTree();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);

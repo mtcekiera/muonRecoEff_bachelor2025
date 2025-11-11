@@ -60,6 +60,7 @@ def main():
         Entry("TPpair_M_postsel", 100, 0, 100)
     ]
     dR_v_probe_pt = ROOT.TH2D("dR_v_probe_pt", "dR vs. probe pt", 50, 0, 10, 100, 0, 0.3)
+    aco_v_probe_pt = ROOT.TH2D("aco_v_probe_pt", "aco vs. probe pt", 50, 0, 10, 100, 0, 0.3)
     # histograms = []
     # for entry in histogram_params:
         # histograms.append(ROOT.TH1D("hist_"+entry.name, "hist_"+entry.name, entry.bins, entry.xmin, entry.xmax))
@@ -91,10 +92,14 @@ def main():
         
         vals_pt = getattr(event, "eps_total")
         vals_dR = getattr(event, "probe_dR_presel")
+        vals_aco = getattr(event, "probe_aco_presel")
 
         for val_pt in vals_pt:
             for val_dR in vals_dR:
                 dR_v_probe_pt.Fill(val_pt, val_dR, weight)
+
+            for val_aco in vals_aco:
+                aco_v_probe_pt.Fill(val_pt, val_aco, weight)
         
     print(f"\rProgress: {total_events} / {total_events}", end="", flush=True)
     print("\n[ Done ]")
@@ -104,6 +109,7 @@ def main():
     hist_weight.Write()
     hist_eps_cutflow.Write()
     dR_v_probe_pt.Write()
+    aco_v_probe_pt.Write()
     for h in histograms.values():
         h.Write()
     f_out.Close()

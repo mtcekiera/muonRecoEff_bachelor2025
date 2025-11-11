@@ -3,93 +3,138 @@ source ~/root/bin/thisroot.sh
 # set -euo pipefail
 
 if [ $# -eq 0 ]; then
-  echo "Usage: $0 [-m] [-d] [-g] [-p] [-e] [-c] [-b] [-h]"
-  echo "  -m    Analyse MC data"
+  echo "Usage: $0 [-m] [-d] [-g] [-p] [-e] [-c] [-h]"
+  echo "  -m    Analyse mc_sc data"
   echo "  -d    Analyse real data"
   echo "  -g    Generate histograms"
   echo "  -p    Plot histograms"
   echo "  -e    Make efficiency plots"
   echo "  -c    Plot cutflows"
-  echo "  -b    Open TBrowser"
   echo "  -h    Show this help message"
   exit 1
 fi
 
-while getopts "mdgpecbh" opt; do
+while getopts "mdgpwecbh" opt; do
   case $opt in
     m)
-        echo "Looping MC data"
+        echo "Looping mc_sc data"
         
-        for x in {0..4}; do
-            echo "(MC) Analysing wp=$x"
-            root -l -q "G2TauTree.C(\"mc_4m7.root\", 0, 925, $x)"
-            root -l -q "G2TauTree.C(\"mc_4m7.root\", 1, 925, $x)"
+        # for x in {0..5}; do
+        #     echo "(MC, SuperChic) Analysing wp=$x"
+        #     root -l -q "G2TauTree.C(\"./input/mc_sc_4m7.root\", \"./output/ID_MS/w${x}/mc_sc_4m7.root\", 0, 925, $x)"
+        #     root -l -q "G2TauTree.C(\"./input/mc_sc_4m7.root\", \"./output/mu_ID/w${x}/mc_sc_4m7.root\", 1, 925, $x)"
 
-            root -l -q "G2TauTree.C(\"mc_7m20.root\", 0, 265, $x)"
-            root -l -q "G2TauTree.C(\"mc_7m20.root\", 1, 265, $x)"
+        #     root -l -q "G2TauTree.C(\"./input/mc_sc_7m20.root\", \"./output/ID_MS/w${x}/mc_sc_7m20.root\", 0, 265, $x)"
+        #     root -l -q "G2TauTree.C(\"./input/mc_sc_7m20.root\", \"./output/mu_ID/w${x}/mc_sc_7m20.root\", 1, 265, $x)"
 
-            root -l -q "G2TauTree.C(\"mc_20m.root\", 0, 9.74, $x)"
-            root -l -q "G2TauTree.C(\"mc_20m.root\", 1, 9.74, $x)"
+        #     root -l -q "G2TauTree.C(\"./input/mc_sc_20m.root\", \"./output/ID_MS/w${x}/mc_sc_20m.root\", 0, 9.74, $x)"
+        #     root -l -q "G2TauTree.C(\"./input/mc_sc_20m.root\", \"./output/mu_ID/w${x}/mc_sc_20m.root\", 1, 9.74, $x)"
+
+        #     echo "Merging files"
+        #     hadd -f -v 0 ./output/ID_MS/w"${x}"/mc_sc.root ./output/ID_MS/w"${x}"/mc_sc_4m7.root ./output/ID_MS/w"${x}"/mc_sc_7m20.root ./output/ID_MS/w"${x}"/mc_sc_20m.root
+        #     hadd -f -v 0 ./output/mu_ID/w"${x}"/mc_sc.root ./output/mu_ID/w"${x}"/mc_sc_4m7.root ./output/mu_ID/w"${x}"/mc_sc_7m20.root ./output/mu_ID/w"${x}"/mc_sc_20m.root
+        # done
+
+        for x in {0..5}; do
+            echo "(MC, StarLight) Analysing wp=$x"
+            root -l -q "G2TauTree.C(\"./input/mc_sl_4m7.root\", \"./output/ID_MS/w${x}/mc_sl_4m7.root\", 0, 741, $x)"
+            root -l -q "G2TauTree.C(\"./input/mc_sl_4m7.root\", \"./output/mu_ID/w${x}/mc_sl_4m7.root\", 1, 741, $x)"
+
+            root -l -q "G2TauTree.C(\"./input/mc_sl_7m20.root\", \"./output/ID_MS/w${x}/mc_sl_7m20.root\", 0, 207, $x)"
+            root -l -q "G2TauTree.C(\"./input/mc_sl_7m20.root\", \"./output/mu_ID/w${x}/mc_sl_7m20.root\", 1, 207, $x)"
+
+            root -l -q "G2TauTree.C(\"./input/mc_sl_20m.root\", \"./output/ID_MS/w${x}/mc_sl_20m.root\", 0, 7.14, $x)"
+            root -l -q "G2TauTree.C(\"./input/mc_sl_20m.root\", \"./output/mu_ID/w${x}/mc_sl_20m.root\", 1, 7.14, $x)"
 
             echo "Merging files"
-            hadd -f -v 0 ./output/ID_MS/w"${x}"/mc.root ./output/ID_MS/w"${x}"/mc_4m7.root ./output/ID_MS/w"${x}"/mc_7m20.root ./output/ID_MS/w"${x}"/mc_20m.root
-            hadd -f -v 0 ./output/mu_ID/w"${x}"/mc.root ./output/mu_ID/w"${x}"/mc_4m7.root ./output/mu_ID/w"${x}"/mc_7m20.root ./output/mu_ID/w"${x}"/mc_20m.root
+            hadd -f -v 0 ./output/ID_MS/w"${x}"/mc_sl.root ./output/ID_MS/w"${x}"/mc_sl_4m7.root ./output/ID_MS/w"${x}"/mc_sl_7m20.root ./output/ID_MS/w"${x}"/mc_sl_20m.root
+            hadd -f -v 0 ./output/mu_ID/w"${x}"/mc_sl.root ./output/mu_ID/w"${x}"/mc_sl_4m7.root ./output/mu_ID/w"${x}"/mc_sl_7m20.root ./output/mu_ID/w"${x}"/mc_sl_20m.root
         done
 
+        for x in {0..5}; do
+            echo "(MC, MadGraph) Analysing wp=$x"
+            root -l -q "G2TauTree.C(\"./input/mc_mg_4m7.root\", \"./output/ID_MS/w${x}/mc_mg_4m7.root\", 0, 921, $x)"
+            root -l -q "G2TauTree.C(\"./input/mc_mg_4m7.root\", \"./output/mu_ID/w${x}/mc_mg_4m7.root\", 1, 921, $x)"
+
+            root -l -q "G2TauTree.C(\"./input/mc_mg_7m20.root\", \"./output/ID_MS/w${x}/mc_mg_7m20.root\", 0, 264, $x)"
+            root -l -q "G2TauTree.C(\"./input/mc_mg_7m20.root\", \"./output/mu_ID/w${x}/mc_mg_7m20.root\", 1, 264, $x)"
+
+            root -l -q "G2TauTree.C(\"./input/mc_mg_20m.root\", \"./output/ID_MS/w${x}/mc_mg_20m.root\", 0, 9.54, $x)"
+            root -l -q "G2TauTree.C(\"./input/mc_mg_20m.root\", \"./output/mu_ID/w${x}/mc_mg_20m.root\", 1, 9.54, $x)"
+
+            echo "Merging files"
+            hadd -f -v 0 ./output/ID_MS/w"${x}"/mc_mg.root ./output/ID_MS/w"${x}"/mc_mg_4m7.root ./output/ID_MS/w"${x}"/mc_mg_7m20.root ./output/ID_MS/w"${x}"/mc_mg_20m.root
+            hadd -f -v 0 ./output/mu_ID/w"${x}"/mc_mg.root ./output/mu_ID/w"${x}"/mc_mg_4m7.root ./output/mu_ID/w"${x}"/mc_mg_7m20.root ./output/mu_ID/w"${x}"/mc_mg_20m.root
+        done
         ;;
     d)
-        # rm ./output/ID_MS/data23.root
-        # rm ./output/mu_ID/data23.root
         echo "Generating data histograms"
-        for x in {0..4}; do
+        for x in {0..5}; do
             echo "(Data) Analysing wp=$x"
-            root -l -q "G2TauTree.C(\"data23.root\", 0, 0.0, $x)"
-            root -l -q "G2TauTree.C(\"data23.root\", 1, 0.0, $x)"
+            root -l -q "G2TauTree.C(\"./input/data23.root\", \"./output/ID_MS/w${x}/data23.root\", 0, 0.0, $x)"
+            root -l -q "G2TauTree.C(\"./input/data23.root\", \"./output/mu_ID/w${x}/data23.root\", 1, 0.0, $x)"
         done
         ;;
     g)
         echo "Generating histograms"
-        # for x in {0..4}; do
-        #     python3 genHistograms.py ./output/ID_MS/w"${x}"/data23.root ./output/ID_MS/w"${x}"/data23_histograms.root
-        #     python3 genHistograms.py ./output/ID_MS/w"${x}"/mc.root ./output/ID_MS/w"${x}"/mc_histograms.root
-        #     python3 genHistograms.py ./output/mu_ID/w"${x}"/data23.root ./output/mu_ID/w"${x}"/data23_histograms.root
-        #     python3 genHistograms.py ./output/mu_ID/w"${x}"/mc.root ./output/mu_ID/w"${x}"/mc_histograms.root
-        # done
-        python3 genHistograms.py ./output/ID_MS/w0/mc.root ./output/ID_MS/w0/mc_histograms.root
-        python3 genHistograms.py ./output/mu_ID/w0/mc.root ./output/mu_ID/w0/mc_histograms.root
-        python3 genHistograms.py ./output/ID_MS/w0/data23.root ./output/ID_MS/w0/data23_histograms.root
-        python3 genHistograms.py ./output/mu_ID/w0/data23.root ./output/mu_ID/w0/data23_histograms.root
-        ;;
-    e)
-        echo "Making efficiency plots"
-        # python3 plotEff.py \
-        # --id-ms-data ./output/ID_MS/data23_histograms.root \
-        # --id-ms-mc   ./output/ID_MS/mc_histograms.root \
-        # --mu-id-data ./output/mu_ID/data23_histograms.root \
-        # --mu-id-mc   ./output/mu_ID/mc_histograms.root \
-        # --bins 1.0,2.0,2.5,3.0,3.5,4.0,4.5,5.5,7.5,10.0,12.5,15.0,50.0 \
-        # --out ./histograms/efficiency.pdf
-        python3 plotEffWP.py
+        for x in {0..5}; do
+
+            python3 genHistograms.py ./output/ID_MS/w"${x}"/mc_sc.root ./output/ID_MS/w"${x}"/hist_mc_sc.root
+            python3 genHistograms.py ./output/mu_ID/w"${x}"/mc_sc.root ./output/mu_ID/w"${x}"/hist_mc_sc.root
+            
+            python3 genHistograms.py ./output/ID_MS/w"${x}"/mc_sl.root ./output/ID_MS/w"${x}"/hist_mc_sl.root
+            python3 genHistograms.py ./output/mu_ID/w"${x}"/mc_sl.root ./output/mu_ID/w"${x}"/hist_mc_sl.root
+
+            python3 genHistograms.py ./output/ID_MS/w"${x}"/mc_mg.root ./output/ID_MS/w"${x}"/hist_mc_mg.root
+            python3 genHistograms.py ./output/mu_ID/w"${x}"/mc_mg.root ./output/mu_ID/w"${x}"/hist_mc_mg.root
+
+        done
+
+        for x in {0..5}; do
+            python3 genHistograms.py ./output/ID_MS/w"${x}"/data23.root ./output/ID_MS/w"${x}"/hist_data23.root
+            python3 genHistograms.py ./output/mu_ID/w"${x}"/data23.root ./output/mu_ID/w"${x}"/hist_data23.root
+        done
         ;;
     p)
-        echo "Plotting histograms"
-        # python3 plotHistograms.py ./output/ID_MS/data23_histograms.root ./output/ID_MS/mc_histograms.root ./histograms/ID_MS_compare.pdf
-        # python3 plotHistograms.py ./output/mu_ID/data23_histograms.root ./output/mu_ID/mc_histograms.root ./histograms/mu_ID_compare.pdf
-        # python3 plotHistograms.py ./output/ID_MS/data23_histograms.root ./output/ID_MS/mc_histograms.root ./histograms/ID_MS_compare.pdf
-        # python3 plotHistograms.py ./output/mu_ID/data23_histograms.root ./output/mu_ID/mc_histograms.root ./histograms/mu_ID_compare.pdf
-        python3 plotHistoWP.py ID_MS
-        python3 plotHistoWP.py mu_ID
+        echo "Plotting histograms for nominal cuts"
+        python3 plotHistograms.py ./output/ID_MS/w0/hist_data23.root ./output/ID_MS/w0/hist_mc_sc.root ./histograms/variables_nominal/ID_MS_sc.pdf
+        python3 plotHistograms.py ./output/mu_ID/w0/hist_data23.root ./output/mu_ID/w0/hist_mc_sc.root ./histograms/variables_nominal/mu_ID_sc.pdf
+        python3 plotHistograms.py ./output/ID_MS/w0/hist_data23.root ./output/ID_MS/w0/hist_mc_sl.root ./histograms/variables_nominal/ID_MS_sl.pdf
+        python3 plotHistograms.py ./output/mu_ID/w0/hist_data23.root ./output/mu_ID/w0/hist_mc_sl.root ./histograms/variables_nominal/mu_ID_sl.pdf
+        python3 plotHistograms.py ./output/ID_MS/w0/hist_data23.root ./output/ID_MS/w0/hist_mc_mg.root ./histograms/variables_nominal/ID_MS_mg.pdf
+        python3 plotHistograms.py ./output/mu_ID/w0/hist_data23.root ./output/mu_ID/w0/hist_mc_mg.root ./histograms/variables_nominal/mu_ID_mg.pdf
+        
         ;;
+    w)
+        echo "Plotting working point histograms"
+        python3 plotHistoWP.py ID_MS hist_data23.root ./histograms/wp_variables/ID_MS_data.pdf data
+        python3 plotHistoWP.py mu_ID hist_data23.root ./histograms/wp_variables/mu_ID_data.pdf data
+
+        python3 plotHistoWP.py ID_MS hist_mc_sc.root ./histograms/wp_variables/ID_MS_mc_sc.pdf mc
+        python3 plotHistoWP.py mu_ID hist_mc_sc.root ./histograms/wp_variables/mu_ID_mc_sc.pdf mc
+
+        python3 plotHistoWP.py ID_MS hist_mc_sl.root ./histograms/wp_variables/ID_MS_mc_sl.pdf mc
+        python3 plotHistoWP.py mu_ID hist_mc_sl.root ./histograms/wp_variables/mu_ID_mc_sl.pdf mc
+
+        python3 plotHistoWP.py ID_MS hist_mc_mg.root ./histograms/wp_variables/ID_MS_mc_mg.pdf mc
+        python3 plotHistoWP.py mu_ID hist_mc_mg.root ./histograms/wp_variables/mu_ID_mc_mg.pdf mc
+    ;;
+    e)
+        echo "Making efficiency plots"
+        python3 plotEffWP.py hist_data23.root ./histograms/efficiencies/WPeff_data23.pdf data
+        python3 plotEffWP.py hist_mc_sc.root ./histograms/efficiencies/WPeff_mc_sc.pdf mc
+        python3 plotEffWP.py hist_mc_sl.root ./histograms/efficiencies/WPeff_ms_sl.pdf mc
+        python3 plotEffWP.py hist_mc_mg.root ./histograms/efficiencies/WPeff_mc_mg.pdf mc
+        ;;
+
     c)
         echo "Plotting cutflows"
         python3 plotCutflow.py ./output/ID_MS/data23_histograms.root ./output/mu_ID/data23_histograms.root ./histograms/cutflow.pdf
         ;;
-    b)
-        root -l -e 'TBrowser* b = new TBrowser(); b->GetBrowserImp()->GetMainFrame()->Resize(1600,1200);'
-        ;;
+
     h)
         echo "Usage: $0 [-m] [-d] [-h] [-b]"
-        echo "  -m    Analyse MC data"
+        echo "  -m    Analyse mc_sc data"
         echo "  -d    Analyse real data"  
         echo "  -b    Open TBrowser"
         echo "  -h    Show this help message"   
