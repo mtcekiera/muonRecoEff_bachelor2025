@@ -8,6 +8,7 @@ Float_t abs_t(Float_t x){
 
 G2TauTree::G2TauTree(std::string input_fname, std::string out_fname, bool TPType_, double sigma, int wp) : fChain(0) 
 {
+    TPType = TPType_;
     weight = 1.0;
     if(sigma>0.0){
         int N = 50000;
@@ -48,7 +49,7 @@ G2TauTree::G2TauTree(std::string input_fname, std::string out_fname, bool TPType
     if(!TPType)
         std::cout<<"ID||MS analysis"<<std::endl;
     else
-        std::cout<<"MU||id analysis"<<std::endl;
+        std::cout<<"mu||ID analysis"<<std::endl;
     std::cout<<"wp = "<<wp<<std::endl;
     TTree * tree;
     TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(input_fname.c_str());
@@ -197,28 +198,30 @@ void G2TauTree::Loop()
 
         //eps
         eps_cutflow->push_back(0);
+
         //passes GRL: all data from file does
         if(!passed_HLT_mu3_hi_FgapAC5_L1MU3V_VTE50){
             output_tree->Fill();
             continue;
         }
         eps_cutflow->push_back(1);
+
         if(check_zdc)
         if(!(zdc_ene_a<1e3 || zdc_ene_c<1e3)){
             output_tree->Fill();
             continue;
         }
-        
         eps_cutflow->push_back(2);
         //at least 1 muon
+
         if(!(nMuon >= 1)){
             output_tree->Fill();
             continue;
         } 
-
         eps_cutflow->push_back(3);
         // up to 2 tracks
         // if(!(track_n<=2))
+        
         if(!(track_n==2 || track_n==1))
         {
             output_tree->Fill();
@@ -238,12 +241,12 @@ void G2TauTree::Loop()
             }
             if(!(abs(muon_eta->at(tag))<2.4)) continue;
             if(!(muon_pt->at(tag)>3)) continue;
-            if(check_d0){if(!(abs(muon_d0->at(tag))<2)) continue;} //1
+            if(check_d0){if(!(abs(muon_d0->at(tag))<2)) continue;}
 
             /////////////////// finding ID||MS probes /////////////////////////////////////
 
             int MSmuon_n = MSmuon_d0->size();
-            if(!TPType) if(!(MSmuon_n==2)) continue; //2
+            if(!TPType) if(!(MSmuon_n==2)) continue;
             if(!TPType) for(int probe = 0; probe<MSmuon_n; probe++)
             { 
                 TLorentzVector v_tag, v_probe, v_pair; 
@@ -256,6 +259,8 @@ void G2TauTree::Loop()
             
                 // distributions before any selections
                 TPpair_M_presel->push_back(v_pair.M());
+                TPpair_pt_presel->push_back(v_pair.Pt());
+                probe_aco_presel->push_back(aco);
 
 
                 TPpair_dR_presel->push_back(tp_dR);
@@ -266,13 +271,14 @@ void G2TauTree::Loop()
                 if(check_d0){if(!(abs(MSmuon_d0->at(probe))<2)) continue;}
                 probe_d0_postsel->push_back(MSmuon_d0->at(probe));
 
-                TPpair_pt_presel->push_back(v_pair.Pt());
                 if(!(v_pair.Pt()<2)) continue;
-                TPpair_pt_postsel->push_back(v_pair.Pt());
 
-                probe_aco_presel->push_back(aco);
                 if(!(aco<aco_threshold)) continue;
+
+                
+                // aco - pair pt correlation
                 probe_aco_postsel->push_back(aco);
+                TPpair_pt_postsel->push_back(v_pair.Pt());
                 
                 TPpair_M_postsel->push_back(v_pair.M());
                 eps_total->push_back(MSmuon_pt->at(probe));
@@ -306,7 +312,9 @@ void G2TauTree::Loop()
 
 
                     eps_pass->push_back(MSmuon_pt->at(probe));
-                    eps_qEta_pass->push_back((MSmuon_eta->at(probe))*(track_charge->at(id)));
+                    eps_qEta_pass->push_back(MSmuon_eta->at(probe));
+                    // eps_qEta_pass->push_back((MSmuon_eta->at(probe))*(track_charge->at(id)));
+                    // untill MSmuon_charge available
 
                     // if only one tp pair is to be found
                     // break;
@@ -325,25 +333,28 @@ void G2TauTree::Loop()
             
                 // distributions before any selections
                 TPpair_M_presel->push_back(v_pair.M());
+                TPpair_pt_presel->push_back(v_pair.Pt());
+                probe_aco_presel->push_back(aco);
 
                 if(!(muon_charge->at(tag)*track_charge->at(probe)<0)) continue;
                 // if(!(track_is_LoosePrimary->at(probe))) continue;
                 if(!(track_is_matched_to_muon)) continue;
+                // jaki jest sens ^ skoro probojemy to wyznaczyc
 
                 probe_d0_presel->push_back(track_d0->at(probe));
                 if(check_d0){if(!(abs(track_d0->at(probe))<2)) continue;}
                 probe_d0_postsel->push_back(track_d0->at(probe));
 
-                TPpair_pt_presel->push_back(v_pair.Pt());
                 if(!(v_pair.Pt()<2)) continue;
-                TPpair_pt_postsel->push_back(v_pair.Pt());
 
-                probe_aco_presel->push_back(aco);
                 if(!(aco<aco_threshold)) continue;
+
+                // aco - pair pt correlation
+                TPpair_pt_postsel->push_back(v_pair.Pt());
                 probe_aco_postsel->push_back(aco);
                     
 
-                eps_qEta_total->push_back(track_eta->at(probe)*track_charge->at(probe));
+                eps_qEta_total->push_back((track_eta->at(probe))*(track_charge->at(probe)));
                 eps_total->push_back(track_pt->at(probe));
                 // probe_prematch_pt->push_back(track_pt->at(probe));
 

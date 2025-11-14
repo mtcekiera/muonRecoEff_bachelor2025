@@ -34,8 +34,8 @@ def main():
     histogram_params = [
         Entry("eps_pass", 100, 0, 50),
         Entry("eps_total", 100, 0, 50),
-        Entry("eps_qEta_pass", 25, -3, 3),
-        Entry("eps_qEta_total", 25, -3, 3),
+        Entry("eps_qEta_pass", 24, -2.4, 2.4),
+        Entry("eps_qEta_total", 24, -2.4, 2.4),
 
         Entry("tag_pt", 100, 0, 40),
         Entry("tag_phi", 100, -3.5, 3.5),
@@ -92,14 +92,16 @@ def main():
         
         vals_pt = getattr(event, "eps_total")
         vals_dR = getattr(event, "probe_dR_presel")
+
+        vals_pair_pt = getattr(event, "TPpair_pt_presel")
         vals_aco = getattr(event, "probe_aco_presel")
 
         for val_pt in vals_pt:
             for val_dR in vals_dR:
                 dR_v_probe_pt.Fill(val_pt, val_dR, weight)
-
+        for val_pair_pt in vals_pair_pt:
             for val_aco in vals_aco:
-                aco_v_probe_pt.Fill(val_pt, val_aco, weight)
+                aco_v_probe_pt.Fill(val_pair_pt, val_aco, weight)
         
     print(f"\rProgress: {total_events} / {total_events}", end="", flush=True)
     print("\n[ Done ]")

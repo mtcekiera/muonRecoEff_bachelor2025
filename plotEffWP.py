@@ -23,13 +23,14 @@ labels = [
     "Tight WP",    
     "Tight WP, aco<0.01",    
     "Tight WP, aco<0.03",
-    "ZDC cuts"    
+    "ZDC cuts",
+    "no d0 cut"
 ]
 markers_data = [
-    20, 21, 22, 23, 29
+    20, 21, 22, 23, 29, 30
 ]
 markers_mc = [
-    24, 25, 26, 27, 30
+    24, 25, 26, 27, 30, 31
 ]
 def style():
     s = ROOT.gStyle
@@ -75,10 +76,9 @@ def build_efficiency_single_file(path, hname_pass, hname_total, edges):
 def get_efficiencies(analysis, filename):
     base = os.path.join("output", analysis)
     eff_data = {}
-    for i in range(5):
+    for i in range(6):
         wp = f"w{i}"
         data_path = os.path.join(base, wp, filename)
-        print(data_path)
         if not (os.path.exists(data_path)):
             print(f"Missing files: {analysis}/{wp}")
             continue
@@ -118,7 +118,7 @@ def draw_single_category_page(c, title, edges, eff_dict, colors, frame_name,
     leg.SetBorderSize(0); leg.SetFillStyle(0)
 
     keep = [frame, leg]
-    for i in range(5):
+    for i in range(6):
         wp = f"w{i}"
         if wp not in eff_dict: 
             continue
@@ -170,7 +170,7 @@ def write_pdf(filename, eff_idms, eff_muid, colors, is_data=True):
     leg.SetBorderSize(0); leg.SetFillStyle(0)
     keep = [frame, leg]
 
-    for i in range(5):
+    for i in range(6):
         wp = f"w{i}"
         if wp in eff_idms and wp in eff_muid:
             gT = combine_total_eff(eff_idms[wp], eff_muid[wp])
