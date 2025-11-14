@@ -14,6 +14,28 @@ def _rel_close(a, b, tol):
     # absolute-or-relative tolerance
     return abs(a - b) <= tol * max(1.0, abs(a), abs(b))
 
+def ratio_of_TGraphs(g1, g2, name):
+    g = ROOT.TGraphAsymmErrors(); ROOT.SetOwnership(g, False)
+    n = min(g1.GetN(), g2.GetN())
+    for i in range(n):
+        x1 = array('d', [0.0]); y1 = array('d', [0.0])
+        x2 = array('d', [0.0]); y2 = array('d', [0.0])
+        g1.GetPoint(i, x1, y1); g2.GetPoint(i, x2, y2)
+        y2v = y2[0]
+        if y2v <= 0: 
+            continue
+        r = y1[0] / y2v
+        eyl1, eyh1 = g1.GetErrorYlow(i),  g1.GetErrorYhigh(i)
+        eyl2, eyh2 = g2.GetErrorYlow(i),  g2.GetErrorYhigh(i)
+        exl1, exh1 = g1.GetErrorXlow(i),  g1.GetErrorXhigh(i)
+        r_hi = (y1[0] + eyh1) / max(y2v - eyl2, 1e-12) - r
+        r_lo = r - (y1[0] - eyl1) / min(y2v + eyh2, 1.0)
+        p = g.GetN()
+        g.SetPoint(p, x1[0], r)
+        g.SetPointError(p, exl1, exh1, max(0.0, r_lo), max(0.0, r_hi))
+    g.SetName(name)
+    return g
+
 def ratio_TGraphAsymmErrors(g_num, g_den, name="ratio", title="ratio", xmatch_tol=1e-9, conservative_fallback=True):
     """
     Build r = g_num / g_den with asymmetric errors:
@@ -107,6 +129,8 @@ def main():
     
     print(f'{data_fname} + {mc_fname} -> {out_fname}')
 
+    # SF = ratio_of_TGraphs(data_eff, mc_eff, 'scale_factor_pT')
+    # SF_qeta = ratio_of_TGraphs(data_eff_qeta, mc_eff_qeta, 'scale_factor_qEta')
     SF = ratio_TGraphAsymmErrors(data_eff, mc_eff, 'scale_factor_pT')
     SF_qeta = ratio_TGraphAsymmErrors(data_eff_qeta, mc_eff_qeta, 'scale_factor_qEta')
 

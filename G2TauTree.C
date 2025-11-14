@@ -23,11 +23,14 @@ G2TauTree::G2TauTree(std::string input_fname, std::string out_fname, bool TPType
     // 3 - aco<0.03
     // 4 - both zdc < 1 TeV
     // 5 - no d0 cuts
-    check_zdc = false;
-    if(wp==4)   check_zdc = true;
+    save_all = false;
+    if(wp==0)   save_all = true;
 
     wpTight = false;
     if(wp==1)  wpTight = true;
+
+    check_zdc = false;
+    if(wp==4)   check_zdc = true;
 
     check_d0 = true;
     if(wp==5)   check_d0 = false;
@@ -110,38 +113,38 @@ void G2TauTree::Loop()
 
 
     // branches
+    if(save_all){
+        output_tree->Branch("eps_cutflow", &eps_cutflow);
+
+        output_tree->Branch("TPpair_n", &TPpair_n); // no. of passed tag-probe pairs
+
+        output_tree->Branch("tag_pt", &tag_pt);     // kinematic var. of passed tags
+        output_tree->Branch("tag_phi", &tag_phi);
+        output_tree->Branch("tag_eta", &tag_eta);
+
+        output_tree->Branch("probe_pt", &probe_pt);     // -||- of passed probes
+        output_tree->Branch("probe_phi", &probe_phi);
+        output_tree->Branch("probe_eta", &probe_eta);
+        output_tree->Branch("probe_aco_presel", &probe_aco_presel);
+        output_tree->Branch("probe_aco_postsel", &probe_aco_postsel);
+        output_tree->Branch("probe_d0_presel", &probe_d0_presel);
+        output_tree->Branch("probe_d0_postsel", &probe_d0_postsel);
+        output_tree->Branch("probe_dR_presel", &probe_dR_presel);
+        output_tree->Branch("probe_dR_postsel", &probe_dR_postsel);
+
+        output_tree->Branch("TPpair_pt_presel", &TPpair_pt_presel);
+        output_tree->Branch("TPpair_pt_postsel", &TPpair_pt_postsel);
+        output_tree->Branch("TPpair_dR_presel", &TPpair_dR_presel);
+        output_tree->Branch("TPpair_dR_postsel", &TPpair_dR_postsel);
+        output_tree->Branch("TPpair_M_presel", &TPpair_M_presel);
+        output_tree->Branch("TPpair_M_postsel", &TPpair_M_postsel);
+    }
+
     output_tree->Branch("weight", &weight);
-    output_tree->Branch("eps_cutflow", &eps_cutflow);
-
-    output_tree->Branch("TPpair_n", &TPpair_n); // no. of passed tag-probe pairs
-
-    output_tree->Branch("tag_pt", &tag_pt);     // kinematic var. of passed tags
-    output_tree->Branch("tag_phi", &tag_phi);
-    output_tree->Branch("tag_eta", &tag_eta);
-
-    output_tree->Branch("probe_pt", &probe_pt);     // -||- of passed probes
-    // output_tree->Branch("probe_prematch_pt", &probe_prematch_pt);     // -||- of passed probes
-    output_tree->Branch("probe_phi", &probe_phi);
-    output_tree->Branch("probe_eta", &probe_eta);
-    output_tree->Branch("probe_aco_presel", &probe_aco_presel);
-    output_tree->Branch("probe_aco_postsel", &probe_aco_postsel);
-    output_tree->Branch("probe_d0_presel", &probe_d0_presel);
-    output_tree->Branch("probe_d0_postsel", &probe_d0_postsel);
-    output_tree->Branch("probe_dR_presel", &probe_dR_presel);
-    output_tree->Branch("probe_dR_postsel", &probe_dR_postsel);
-
     output_tree->Branch("eps_pass", &eps_pass);
     output_tree->Branch("eps_qEta_pass", &eps_qEta_pass);
     output_tree->Branch("eps_total", &eps_total);
     output_tree->Branch("eps_qEta_total", &eps_qEta_total);
-
-    output_tree->Branch("TPpair_pt_presel", &TPpair_pt_presel);
-    output_tree->Branch("TPpair_pt_postsel", &TPpair_pt_postsel);
-    output_tree->Branch("TPpair_dR_presel", &TPpair_dR_presel);
-    output_tree->Branch("TPpair_dR_postsel", &TPpair_dR_postsel);
-    output_tree->Branch("TPpair_M_presel", &TPpair_M_presel);
-    output_tree->Branch("TPpair_M_postsel", &TPpair_M_postsel);
-
 
     int checkpoint = 10000;
     Long64_t nentries = fChain->GetEntriesFast();
@@ -282,6 +285,7 @@ void G2TauTree::Loop()
                 
                 TPpair_M_postsel->push_back(v_pair.M());
                 eps_total->push_back(MSmuon_pt->at(probe));
+                
                 eps_qEta_total->push_back(MSmuon_eta->at(probe));
 
                 // probe_prematch_pt->push_back(MSmuon_pt->at(probe));

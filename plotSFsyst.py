@@ -11,13 +11,13 @@ ROOT.gStyle.SetHatchesSpacing(1.2)
 
 BASE_DIR = "output/eff"
 FOLDERS  = ["w0", "w1", "w2", "w3", "w4", "w5"]
-OBJ_NAME = "scale_factor"
+# OBJ_NAME = "scale_factor_pT"
 X_MATCH_TOL = 1e-9
 
-def get_graph(path):
+def get_graph(path, eff_name):
     f = ROOT.TFile.Open(path)
     if not f or f.IsZombie(): return None
-    g = f.Get(OBJ_NAME)
+    g = f.Get(eff_name)
     if not g or not g.InheritsFrom("TGraphAsymmErrors"):
         f.Close(); return None
     g2 = g.Clone()
@@ -50,7 +50,7 @@ def build_syst_graph(nom, var, name):
         j = find_by_x(var, x0)
         if j < 0: continue
         _, y1 = point(var, j)
-        dy = abs(y0 - y1)
+        dy = abs(y0 - y1)/y0 if y0>0 else 0
         p = out.GetN()
         out.SetPoint(p, x0, y0)
         out.SetPointError(p, max(exl0, 0.0), max(exh0, 0.0), dy, dy)
@@ -78,63 +78,21 @@ def build_quadrature_band(nom, syst_graphs, name="syst_total_quad"):
         out.SetPointError(p, exl0, exh0, e_tot, e_tot)
     return out
 
-def x_range_log_safe(g):
-    xmin_pos, xmax = None, None
-    for i in range(g.GetN()):
-        x, _ = point(g, i)
-        exl, exh, _, _ = errs(g, i)
-        lo = x - exl if exl < x else 0.5 * max(x, 1e-9)
-        hi = x + exh
-        if lo > 0:
-            xmin_pos = lo if xmin_pos is None else min(xmin_pos, lo)
-        if hi > 0:
-            xmax = hi if xmax is None else max(xmax, hi)
-    if xmin_pos is None or xmax is None or xmax <= xmin_pos:
-        xmin_pos, xmax = 1e-3, 1.0
-    return 0.95 * xmin_pos, 1.05 * xmax
-
-def y_range(nom, graphs):
-    ymin = None; ymax = None
-    for i in range(nom.GetN()):
-        _, y = point(nom, i)
-        _, _, eyl, eyh = errs(nom, i)
-        ymin = y - eyl if ymin is None else min(ymin, y - eyl)
-        ymax = y + eyh if ymax is None else max(ymax, y + eyh)
-    for g in graphs:
-        for i in range(g.GetN()):
-            _, y = point(g, i)
-            _, _, eyl, eyh = errs(g, i)
-            ymin = min(ymin, y - eyl)
-            ymax = max(ymax, y + eyh)
-    if ymin is None or ymax is None or ymax <= ymin:
-        ymin, ymax = 0.5, 1.5
-    span = ymax - ymin
-    return max(0.0, ymin - 0.05*span), min(2.0, ymax + 0.05*span)
-
-def style_nominal(g):
-    g.SetLineColor(ROOT.kBlack)
-    g.SetMarkerColor(ROOT.kBlack)
-    g.SetMarkerStyle(20)
-    g.SetLineWidth(2)
-
 def style_syst(graphs):
     styles = [
-        {"color": ROOT.kAzure+1,   "fill": 3004, "line": 2},
-        {"color": ROOT.kOrange+7,  "fill": 3005, "line": 2},
-        {"color": ROOT.kGreen+2,   "fill": 3351, "line": 2},
-        {"color": ROOT.kMagenta+1, "fill": 3354, "line": 2},
-        {"color": ROOT.kRed+1,     "fill": 1001, "alpha": 0.20, "line": 2},
+        {"color": ROOT.kBlack,      "line": 2,  "linestyle": 1},
+        {"color": ROOT.kAzure+1,    "line": 2,  "linestyle": 2},
+        {"color": ROOT.kOrange+7,   "line": 2,  "linestyle": 3},
+        {"color": ROOT.kGreen+2,    "line": 2,  "linestyle": 4},
+        {"color": ROOT.kMagenta+1,  "line": 2,  "linestyle": 5},
+        {"color": ROOT.kRed+1,      "line": 2,  "linestyle": 6},
     ]
     for i, g in enumerate(graphs):
         st = styles[i % len(styles)]
         g.SetLineColor(st["color"])
         g.SetLineWidth(st["line"])
-        if st.get("fill", 0) == 1001:
-            g.SetFillColorAlpha(st["color"], st.get("alpha", 0.25))
-            g.SetFillStyle(1001)
-        else:
-            g.SetFillColor(st["color"])
-            g.SetFillStyle(st["fill"])
+        g.SetLineStyle(st["linestyle"])
+
         g.SetMarkerStyle(1)
 
 def style_total_band(g):
@@ -144,33 +102,101 @@ def style_total_band(g):
     g.SetFillStyle(1001)
     g.SetMarkerStyle(1)
 
-def make_legend(nom, syst_graphs, labels):
-    leg = ROOT.TLegend(0.58, 0.16, 0.88, 0.40)
+def make_legend(graphs, labels):
+    leg = ROOT.TLegend(0.58, 0.64, 0.88, 0.88)
     leg.SetBorderSize(0)
-    leg.AddEntry(nom, "Nominal (w0)", "pe")
-    for g, lab in zip(syst_graphs, labels):
-        leg.AddEntry(g, lab, "f")
+    # leg.AddEntry(graphs[0], "Nominal (w0)", "pe")
+    leg.AddEntry(graphs[0], labels[0], "P E1")
+
+    for g, lab in zip(graphs[1:], labels[1:]):
+        leg.AddEntry(g, lab)
     return leg
 
 def make_legend_total(nom, total_band):
-    leg = ROOT.TLegend(0.58, 0.16, 0.88, 0.34)
+    leg = ROOT.TLegend(0.58, 0.64, 0.88, 0.88)
     leg.SetBorderSize(0)
     leg.AddEntry(nom, "Nominal (w0)", "pe")
     leg.AddEntry(total_band, "Total syst. (quadrature)", "f")
     return leg
 
+def graph_to_hist_step(g, name):
+    """Build a TH1D with variable bins from a TGraphAsymmErrors.
+       Uses x-exlow and x+exhigh as bin edges; sets bin contents to y."""
+    import array as _array
+    n = g.GetN()
+    if n == 0: return None
+
+    # Collect per-bin (left, right, value)
+    bins = []
+    for i in range(n):
+        x, y = point(g, i)
+        exl, exh, _, _ = errs(g, i)
+        left  = x - exl
+        right = x + exh
+        if right <= left:
+            # Fallback: use midpoint spacing if x-errors are zero or bad
+            # Estimate edges from neighbors
+            if i == 0:
+                x_next, _ = point(g, i+1)
+                right = (x + x_next) / 2.0
+                left  = max(1e-12, x - (right - x))  # keep >0 for log-x
+            elif i == n-1:
+                x_prev, _ = point(g, i-1)
+                left  = (x_prev + x) / 2.0
+                right = x + (x - left)
+            else:
+                x_prev, _ = point(g, i-1)
+                x_next, _ = point(g, i+1)
+                left  = (x_prev + x) / 2.0
+                right = (x + x_next) / 2.0
+        bins.append((left, right, y))
+
+    # Build edges (assumes bins ordered in x)
+    edges = [bins[0][0]]
+    for _, r, _ in bins:
+        edges.append(r)
+
+    # Ensure strictly increasing and positive (log-x)
+    for k in range(1, len(edges)):
+        if edges[k] <= edges[k-1]:
+            edges[k] = edges[k-1] * (1.0 + 1e-9)
+        if edges[k] <= 0:
+            edges[k] = 1e-12
+
+    h = ROOT.TH1D(name, "", len(edges)-1, array('d', edges))
+    h.SetDirectory(0)
+    for i, (_, _, val) in enumerate(bins, start=1):
+        h.SetBinContent(i, val)
+        h.SetBinError(i, 0.0)  # line-only step look; keep 0 to avoid caps
+    return h
+
+def style_hist_like_graph(h, g_src):
+    """Carry over line/marker styles from a graph to the histogram."""
+    h.SetLineColor(g_src.GetLineColor())
+    h.SetLineStyle(g_src.GetLineStyle())
+    h.SetLineWidth(g_src.GetLineWidth())
+    h.SetMarkerStyle(1)
+    h.SetFillStyle(0)
+
+
 def main():
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         print("usage: python plot_syst_bands.py input.root output.pdf"); sys.exit(1)
 
     in_name = sys.argv[1]
     out_pdf = sys.argv[2]
+    eff_name = sys.argv[3]
+    pT = False
+    if "pT" in eff_name:
+        pT = True
+        
+
 
     graphs = []
     missing = []
     for w in FOLDERS:
         path = os.path.join(BASE_DIR, w, in_name)
-        g = get_graph(path)
+        g = get_graph(path, eff_name)
         if not g: missing.append(path)
         graphs.append(g)
 
@@ -187,49 +213,72 @@ def main():
                 print(f"  {BASE_DIR}/{FOLDERS[i]}/{in_name}")
 
     g_nom = graphs[0]
-    style_nominal(g_nom)
-
     # Page 1: individual systematics
-    syst_graphs, syst_labels = [], []
-    for i in range(1, len(graphs)):
-        if graphs[i] is None: continue
-        gs = build_syst_graph(g_nom, graphs[i], f"syst_{FOLDERS[i]}")
-        syst_graphs.append(gs)
-        # syst_labels.append(f"|w0 - {FOLDERS[i]}|")
-    syst_labels = ["Tight", "aco<0.01", "aco<0.03", "ZDC", "no d0"]
-    style_syst(syst_graphs)
 
-    # xmin, xmax = x_range_log_safe(g_nom)
-    ymin1, ymax1 = y_range(g_nom, syst_graphs)
-    xmin, xmax = 1.0, 50.0
-    # ymin1, ymax1 = 0.8, 1.2
+    labels = ["Nominal", "Tight", "aco<0.01", "aco<0.03", "ZDC", "no d0"]
+    style_syst(graphs)
+    
+    ymin, ymax = 0.94, 1.06
 
+    if pT:
+        xmin, xmax = 1.0, 50.0
+        logx = True
+
+    else:
+        xmin, xmax = -2.4, 2.4
+        logx = False
+        
+   
+
+    ROOT.gStyle.SetOptStat(0)
     c = ROOT.TCanvas("c", "c", 850, 720)
-    c.SetLogx(True)
+
+    c.SetLogx(logx)
 
     c.Print(out_pdf + "[")
-    frame1 = ROOT.TH1F("frame1", ";x;Scale factor", 1, xmin, xmax)
+    if pT:
+        frame1 = ROOT.TH1F("frame1", ";p_{T} [GeV];Scale factor", 1, xmin, xmax)
+    else:
+        frame1 = ROOT.TH1F("frame1", r";q#eta;Scale factor", 1, xmin, xmax)
     frame1.SetDirectory(0)
-    frame1.SetMinimum(ymin1); frame1.SetMaximum(ymax1)
+    frame1.SetMinimum(ymin); frame1.SetMaximum(ymax)
     frame1.Draw()
-    for gs in syst_graphs:
-        gs.Draw("E2 SAME"); gs.Draw("E1 SAME")
+    ROOT.gPad.Update()
+
+    # Convert variations (graphs[1:]) to step histos and draw
+    h_steps = []
+    for idx, g in enumerate(graphs[1:], start=1):
+        if not g: 
+            h_steps.append(None)
+            continue
+        h = graph_to_hist_step(g, f"h_step_{idx}")
+        style_hist_like_graph(h, g)
+        h.Draw("HIST SAME")
+        h_steps.append(h)
+
+# Nominal stays as points with errors
     g_nom.Draw("P E1 SAME")
-    leg1 = make_legend(g_nom, syst_graphs, syst_labels)
+
+    ROOT.gPad.RedrawAxis()
+    leg1 = make_legend(graphs, labels)  # legend still refers to original graphs
     leg1.Draw()
     c.Modified(); c.Update(); c.Print(out_pdf)
 
     # Page 2: quadrature-summed systematic band
+    syst_graphs = []
+    for i in range(1, len(graphs)):
+        if graphs[i] is None: continue
+        gs = build_syst_graph(g_nom, graphs[i], f"syst_{FOLDERS[i]}")
+        syst_graphs.append(gs)
     total_band = build_quadrature_band(g_nom, syst_graphs, "syst_total_quad")
     style_total_band(total_band)
-    ymin2, ymax2 = y_range(g_nom, [total_band])
 
-    c.Clear(); c.SetLogx(True)
+    c.Clear(); c.SetLogx(logx)
     frame2 = ROOT.TH1F("frame2", ";x;Scale factor", 1, xmin, xmax)
     frame2.SetDirectory(0)
-    frame2.SetMinimum(ymin2); frame2.SetMaximum(ymax2)
+    frame2.SetMinimum(ymin); frame2.SetMaximum(ymax)
     frame2.Draw()
-    total_band.Draw("E2 SAME"); total_band.Draw("E1 SAME")
+    total_band.Draw("E2 SAME");# total_band.Draw("E1 SAME")
     g_nom.Draw("P E1 SAME")
     leg2 = make_legend_total(g_nom, total_band)
     leg2.Draw()

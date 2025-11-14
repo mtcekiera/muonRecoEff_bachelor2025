@@ -40,6 +40,7 @@ public :
 
    double weight;
 
+   Bool_t save_all;
    Bool_t wpTight;
    Double_t aco_threshold;
    Bool_t check_zdc;
