@@ -19,7 +19,7 @@ while getopts "mdgpwefsbzh" opt; do
     m)
         echo "Looping mc_sc data"
         
-        for x in {0..5}; do
+        for x in {0..6}; do
             echo "(MC, SuperChic) Analysing wp=$x"
             root -l -q "G2TauTree.C(\"./input/mc_sc_4m7.root\", \"./output/ID_MS/w${x}/mc_sc_4m7.root\", 0, 925, $x)"
             root -l -q "G2TauTree.C(\"./input/mc_sc_4m7.root\", \"./output/mu_ID/w${x}/mc_sc_4m7.root\", 1, 925, $x)"
@@ -35,7 +35,7 @@ while getopts "mdgpwefsbzh" opt; do
             hadd -f -v 0 ./output/mu_ID/w"${x}"/mc_sc.root ./output/mu_ID/w"${x}"/mc_sc_4m7.root ./output/mu_ID/w"${x}"/mc_sc_7m20.root ./output/mu_ID/w"${x}"/mc_sc_20m.root
         done
 
-        for x in {0..5}; do
+        for x in {0..6}; do
             echo "(MC, StarLight) Analysing wp=$x"
             root -l -q "G2TauTree.C(\"./input/mc_sl_4m7.root\", \"./output/ID_MS/w${x}/mc_sl_4m7.root\", 0, 741, $x)"
             root -l -q "G2TauTree.C(\"./input/mc_sl_4m7.root\", \"./output/mu_ID/w${x}/mc_sl_4m7.root\", 1, 741, $x)"
@@ -51,7 +51,7 @@ while getopts "mdgpwefsbzh" opt; do
             hadd -f -v 0 ./output/mu_ID/w"${x}"/mc_sl.root ./output/mu_ID/w"${x}"/mc_sl_4m7.root ./output/mu_ID/w"${x}"/mc_sl_7m20.root ./output/mu_ID/w"${x}"/mc_sl_20m.root
         done
 
-        for x in {0..5}; do
+        for x in {0..6}; do
             echo "(MC, MadGraph) Analysing wp=$x"
             root -l -q "G2TauTree.C(\"./input/mc_mg_4m7.root\", \"./output/ID_MS/w${x}/mc_mg_4m7.root\", 0, 921, $x)"
             root -l -q "G2TauTree.C(\"./input/mc_mg_4m7.root\", \"./output/mu_ID/w${x}/mc_mg_4m7.root\", 1, 921, $x)"
@@ -69,7 +69,7 @@ while getopts "mdgpwefsbzh" opt; do
         ;;
     d)
         echo "Generating data histograms"
-        for x in {0..5}; do
+        for x in {0..6}; do
             echo "(Data) Analysing wp=$x"
             root -l -q "G2TauTree.C(\"./input/data23.root\", \"./output/ID_MS/w${x}/data23.root\", 0, 0.0, $x)"
             root -l -q "G2TauTree.C(\"./input/data23.root\", \"./output/mu_ID/w${x}/data23.root\", 1, 0.0, $x)"
@@ -77,8 +77,7 @@ while getopts "mdgpwefsbzh" opt; do
         ;;
     g)
         echo "Generating histograms"
-        for x in {0..5}; do
-
+        for x in {0..6}; do
             python3 genHistograms.py ./output/ID_MS/w"${x}"/mc_sc.root ./output/ID_MS/w"${x}"/hist_mc_sc.root "${x}"
             python3 genHistograms.py ./output/mu_ID/w"${x}"/mc_sc.root ./output/mu_ID/w"${x}"/hist_mc_sc.root "${x}"
             
@@ -90,10 +89,12 @@ while getopts "mdgpwefsbzh" opt; do
 
         done
 
-        for x in {0..5}; do
+        for x in {0..6}; do
             python3 genHistograms.py ./output/ID_MS/w"${x}"/data23.root ./output/ID_MS/w"${x}"/hist_data23.root "${x}"
             python3 genHistograms.py ./output/mu_ID/w"${x}"/data23.root ./output/mu_ID/w"${x}"/hist_data23.root "${x}"
         done
+
+
         ;;
     p)
         echo "Plotting histograms for nominal cuts"
@@ -105,36 +106,15 @@ while getopts "mdgpwefsbzh" opt; do
         python3 plotHistograms.py ./output/mu_ID/w0/hist_data23.root ./output/mu_ID/w0/hist_mc_mg.root ./histograms/variables_nominal/mu_ID_mg.pdf
         
         ;;
-    # w)
-    #     echo "Plotting working point histograms"
-    #     python3 plotHistoWP.py ID_MS hist_data23.root ./histograms/wp_variables/ID_MS_data.pdf data
-    #     python3 plotHistoWP.py mu_ID hist_data23.root ./histograms/wp_variables/mu_ID_data.pdf data
 
-    #     python3 plotHistoWP.py ID_MS hist_mc_sc.root ./histograms/wp_variables/ID_MS_mc_sc.pdf mc
-    #     python3 plotHistoWP.py mu_ID hist_mc_sc.root ./histograms/wp_variables/mu_ID_mc_sc.pdf mc
-
-    #     python3 plotHistoWP.py ID_MS hist_mc_sl.root ./histograms/wp_variables/ID_MS_mc_sl.pdf mc
-    #     python3 plotHistoWP.py mu_ID hist_mc_sl.root ./histograms/wp_variables/mu_ID_mc_sl.pdf mc
-
-    #     python3 plotHistoWP.py ID_MS hist_mc_mg.root ./histograms/wp_variables/ID_MS_mc_mg.pdf mc
-    #     python3 plotHistoWP.py mu_ID hist_mc_mg.root ./histograms/wp_variables/mu_ID_mc_mg.pdf mc
-
-    # ;;
     e)
         echo "Generating efficiency files"
-        for x in {0..5}; do
+        for x in {0..6}; do
             python3 genEff.py w"${x}"/hist_data23.root ./output/eff/w"${x}"/eff_data23.root
             python3 genEff.py w"${x}"/hist_mc_sc.root ./output/eff/w"${x}"/eff_mc_sc.root
             python3 genEff.py w"${x}"/hist_mc_sl.root ./output/eff/w"${x}"/eff_mc_sl.root
             python3 genEff.py w"${x}"/hist_mc_mg.root ./output/eff/w"${x}"/eff_mc_mg.root
         done
-
-        # echo "Calculating scale factors"
-        # for x in {0..5}; do
-        #     python3 genSF.py ./output/eff/w"${x}"/eff_data23.root ./output/eff/w"${x}"/eff_mc_sc.root ./output/eff/w"${x}"/sf_sc.root
-        #     python3 genSF.py ./output/eff/w"${x}"/eff_data23.root ./output/eff/w"${x}"/eff_mc_sl.root ./output/eff/w"${x}"/sf_sl.root
-        #     python3 genSF.py ./output/eff/w"${x}"/eff_data23.root ./output/eff/w"${x}"/eff_mc_mg.root ./output/eff/w"${x}"/sf_mg.root
-        # done
         ;;
     f)
         echo "Plotting nominal efficiencies"
@@ -144,7 +124,7 @@ while getopts "mdgpwefsbzh" opt; do
         ;;
     s)
         echo "Calculating scale factors"
-        for x in {0..5}; do
+        for x in {0..6}; do
             python3 genSF.py ./output/eff/w"${x}"/eff_data23.root ./output/eff/w"${x}"/eff_mc_sc.root ./output/eff/w"${x}"/sf_sc.root
             python3 genSF.py ./output/eff/w"${x}"/eff_data23.root ./output/eff/w"${x}"/eff_mc_sl.root ./output/eff/w"${x}"/sf_sl.root
             python3 genSF.py ./output/eff/w"${x}"/eff_data23.root ./output/eff/w"${x}"/eff_mc_mg.root ./output/eff/w"${x}"/sf_mg.root

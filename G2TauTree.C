@@ -35,6 +35,9 @@ G2TauTree::G2TauTree(std::string input_fname, std::string out_fname, bool TPType
     check_d0 = true;
     if(wp==5)   check_d0 = false;
 
+    TPpair_pt_threshold = 2;
+    if(wp==6) TPpair_pt_threshold = 1;
+
     switch(wp){
         default:
             aco_threshold = 0.02;
@@ -274,7 +277,7 @@ void G2TauTree::Loop()
                 if(check_d0){if(!(abs(MSmuon_d0->at(probe))<2)) continue;}
                 probe_d0_postsel->push_back(MSmuon_d0->at(probe));
 
-                if(!(v_pair.Pt()<2)) continue;
+                if(!(v_pair.Pt()<TPpair_pt_threshold)) continue;
 
                 if(!(aco<aco_threshold)) continue;
 
@@ -349,7 +352,7 @@ void G2TauTree::Loop()
                 if(check_d0){if(!(abs(track_d0->at(probe))<2)) continue;}
                 probe_d0_postsel->push_back(track_d0->at(probe));
 
-                if(!(v_pair.Pt()<2)) continue;
+                if(!(v_pair.Pt()<TPpair_pt_threshold)) continue;
 
                 if(!(aco<aco_threshold)) continue;
 

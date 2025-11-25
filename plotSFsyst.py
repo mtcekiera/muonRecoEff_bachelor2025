@@ -10,7 +10,7 @@ ROOT.gStyle.SetHatchesLineWidth(1)
 ROOT.gStyle.SetHatchesSpacing(1.2)
 
 BASE_DIR = "output/eff"
-FOLDERS  = ["w0", "w1", "w2", "w3", "w4", "w5"]
+FOLDERS  = ["w0", "w1", "w2", "w3", "w4", "w5", "w6"]
 # OBJ_NAME = "scale_factor_pT"
 X_MATCH_TOL = 1e-9
 
@@ -86,6 +86,7 @@ def style_syst(graphs):
         {"color": ROOT.kGreen+2,    "line": 2,  "linestyle": 4},
         {"color": ROOT.kMagenta+1,  "line": 2,  "linestyle": 5},
         {"color": ROOT.kRed+1,      "line": 2,  "linestyle": 6},
+        {"color": ROOT.kBlue+1,     "line": 2,  "linestyle": 7},
     ]
     for i, g in enumerate(graphs):
         st = styles[i % len(styles)]
@@ -124,7 +125,9 @@ def graph_to_hist_step(g, name):
        Uses x-exlow and x+exhigh as bin edges; sets bin contents to y."""
     import array as _array
     n = g.GetN()
-    if n == 0: return None
+    if n == 0: 
+        print("G empty")
+        return None
 
     # Collect per-bin (left, right, value)
     bins = []
@@ -172,6 +175,12 @@ def graph_to_hist_step(g, name):
 
 def style_hist_like_graph(h, g_src):
     """Carry over line/marker styles from a graph to the histogram."""
+    if h is None:
+        print("Histogram is invalid")
+        return
+    if g_src is None:
+        print("Graph is invalid")
+        return
     h.SetLineColor(g_src.GetLineColor())
     h.SetLineStyle(g_src.GetLineStyle())
     h.SetLineWidth(g_src.GetLineWidth())
@@ -211,14 +220,15 @@ def main():
             if i == 0: continue
             if g is None:
                 print(f"  {BASE_DIR}/{FOLDERS[i]}/{in_name}")
+                return
 
     g_nom = graphs[0]
     # Page 1: individual systematics
 
-    labels = ["Nominal", "Tight", "aco<0.01", "aco<0.03", "ZDC", "no d0"]
+    labels = ["Nominal", "Tight", "aco<0.01", "aco<0.03", "ZDC", "no d0", "pair pT<1GeV"]
     style_syst(graphs)
     
-    ymin, ymax = 0.94, 1.06
+    ymin, ymax = 0.9, 1.1
 
     if pT:
         xmin, xmax = 1.0, 50.0
@@ -252,6 +262,9 @@ def main():
             h_steps.append(None)
             continue
         h = graph_to_hist_step(g, f"h_step_{idx}")
+        if h is None:
+            print("Histogram is invalid, possible empty graphs")
+            return
         style_hist_like_graph(h, g)
         h.Draw("HIST SAME")
         h_steps.append(h)

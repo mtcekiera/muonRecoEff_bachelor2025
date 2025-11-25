@@ -97,16 +97,15 @@ def main():
         j += 1
         weight = getattr(event, "weight")
         hist_weight.Fill(weight)
-
+        for entry in histogram_params:
+            vals = getattr(event, entry.name)
+            for val in vals:
+                histograms[entry.name].Fill(val, weight)
+                
         if save_all:
             vals = getattr(event, "eps_cutflow")
             for val in vals:
                 hist_eps_cutflow.Fill(val)
-            for entry in histogram_params:
-                vals = getattr(event, entry.name)
-                for val in vals:
-                    histograms[entry.name].Fill(val, weight)
-            
             vals_pt = getattr(event, "eps_total")
             vals_dR = getattr(event, "probe_dR_presel")
 

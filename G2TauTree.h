@@ -45,6 +45,7 @@ public :
    Double_t aco_threshold;
    Bool_t check_zdc;
    Bool_t check_d0;
+   Double_t TPpair_pt_threshold;
 
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
