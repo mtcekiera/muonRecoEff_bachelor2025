@@ -19,6 +19,7 @@ while getopts "mdgpwefsbzh" opt; do
     m)
         echo "Looping mc_sc data"
         
+        # for x in {0..6}; do
         for x in {0..6}; do
             echo "(MC, SuperChic) Analysing wp=$x"
             root -l -q "G2TauTree.C(\"./input/mc_sc_4m7.root\", \"./output/ID_MS/w${x}/mc_sc_4m7.root\", 0, 925, $x)"
@@ -35,7 +36,8 @@ while getopts "mdgpwefsbzh" opt; do
             hadd -f -v 0 ./output/mu_ID/w"${x}"/mc_sc.root ./output/mu_ID/w"${x}"/mc_sc_4m7.root ./output/mu_ID/w"${x}"/mc_sc_7m20.root ./output/mu_ID/w"${x}"/mc_sc_20m.root
         done
 
-        for x in {0..6}; do
+        # for x in {0..6}; do
+        for x in 0; do
             echo "(MC, StarLight) Analysing wp=$x"
             root -l -q "G2TauTree.C(\"./input/mc_sl_4m7.root\", \"./output/ID_MS/w${x}/mc_sl_4m7.root\", 0, 741, $x)"
             root -l -q "G2TauTree.C(\"./input/mc_sl_4m7.root\", \"./output/mu_ID/w${x}/mc_sl_4m7.root\", 1, 741, $x)"
@@ -51,7 +53,8 @@ while getopts "mdgpwefsbzh" opt; do
             hadd -f -v 0 ./output/mu_ID/w"${x}"/mc_sl.root ./output/mu_ID/w"${x}"/mc_sl_4m7.root ./output/mu_ID/w"${x}"/mc_sl_7m20.root ./output/mu_ID/w"${x}"/mc_sl_20m.root
         done
 
-        for x in {0..6}; do
+        for x in 0; do
+        # for x in {0..6}; do
             echo "(MC, MadGraph) Analysing wp=$x"
             root -l -q "G2TauTree.C(\"./input/mc_mg_4m7.root\", \"./output/ID_MS/w${x}/mc_mg_4m7.root\", 0, 921, $x)"
             root -l -q "G2TauTree.C(\"./input/mc_mg_4m7.root\", \"./output/mu_ID/w${x}/mc_mg_4m7.root\", 1, 921, $x)"
@@ -69,15 +72,18 @@ while getopts "mdgpwefsbzh" opt; do
         ;;
     d)
         echo "Generating data histograms"
-        for x in {0..6}; do
+        # for x in {0..6}; do
+        for x in 0; do
             echo "(Data) Analysing wp=$x"
             root -l -q "G2TauTree.C(\"./input/data23.root\", \"./output/ID_MS/w${x}/data23.root\", 0, 0.0, $x)"
+            
             root -l -q "G2TauTree.C(\"./input/data23.root\", \"./output/mu_ID/w${x}/data23.root\", 1, 0.0, $x)"
         done
         ;;
     g)
         echo "Generating histograms"
-        for x in {0..6}; do
+        # for x in {0..6}; do
+        for x in 0; do
             python3 genHistograms.py ./output/ID_MS/w"${x}"/mc_sc.root ./output/ID_MS/w"${x}"/hist_mc_sc.root "${x}"
             python3 genHistograms.py ./output/mu_ID/w"${x}"/mc_sc.root ./output/mu_ID/w"${x}"/hist_mc_sc.root "${x}"
             
@@ -89,7 +95,8 @@ while getopts "mdgpwefsbzh" opt; do
 
         done
 
-        for x in {0..6}; do
+        # for x in {0..6}; do
+        for x in 0; do
             python3 genHistograms.py ./output/ID_MS/w"${x}"/data23.root ./output/ID_MS/w"${x}"/hist_data23.root "${x}"
             python3 genHistograms.py ./output/mu_ID/w"${x}"/data23.root ./output/mu_ID/w"${x}"/hist_data23.root "${x}"
         done

@@ -90,18 +90,18 @@ void G2TauTree::Loop()
     std::vector<Float_t> *tag_phi  = new std::vector<Float_t>();
     std::vector<Float_t> *tag_eta  = new std::vector<Float_t>();
 
-    std::vector<Float_t> *probe_pt  = new std::vector<Float_t>();
-    std::vector<Float_t> *probe_prematch_pt  = new std::vector<Float_t>();
+    std::vector<Float_t> *probe_pt_midsel  = new std::vector<Float_t>();
+    std::vector<Float_t> *probe_pt_presel  = new std::vector<Float_t>();
     std::vector<Float_t> *probe_phi  = new std::vector<Float_t>();
     std::vector<Float_t> *probe_eta  = new std::vector<Float_t>();
-    std::vector<Float_t> *probe_aco_presel = new std::vector<Float_t>();
-    std::vector<Float_t> *probe_aco_postsel = new std::vector<Float_t>();
+    std::vector<Float_t> *TPpair_aco_presel = new std::vector<Float_t>();
+    std::vector<Float_t> *TPpair_aco_midsel = new std::vector<Float_t>();
     std::vector<Float_t> *TPpair_dR_presel = new std::vector<Float_t>();
     std::vector<Float_t> *TPpair_dR_postsel = new std::vector<Float_t>();
     std::vector<Float_t> *probe_d0_presel = new std::vector<Float_t>();
     std::vector<Float_t> *probe_d0_postsel = new std::vector<Float_t>();
     std::vector<Float_t> *probe_dR_presel = new std::vector<Float_t>();
-    std::vector<Float_t> *probe_dR_postsel = new std::vector<Float_t>();
+    std::vector<Float_t> *probe_dR_midsel = new std::vector<Float_t>();
 
     std::vector<Float_t> *eps_pass = new std::vector<Float_t>(); 
     std::vector<Float_t> *eps_qEta_pass = new std::vector<Float_t>();
@@ -109,7 +109,7 @@ void G2TauTree::Loop()
     std::vector<Float_t> *eps_qEta_total = new std::vector<Float_t>();
 
     std::vector<Float_t> *TPpair_pt_presel = new std::vector<Float_t>();
-    std::vector<Float_t> *TPpair_pt_postsel = new std::vector<Float_t>();
+    std::vector<Float_t> *TPpair_pt_midsel = new std::vector<Float_t>();
     std::vector<Float_t> *TPpair_M_presel = new std::vector<Float_t>();
     std::vector<Float_t> *TPpair_M_postsel = new std::vector<Float_t>();
 
@@ -125,18 +125,19 @@ void G2TauTree::Loop()
         output_tree->Branch("tag_phi", &tag_phi);
         output_tree->Branch("tag_eta", &tag_eta);
 
-        output_tree->Branch("probe_pt", &probe_pt);     // -||- of passed probes
+        output_tree->Branch("probe_pt_midsel", &probe_pt_midsel);     // -||- of passed probes
+        output_tree->Branch("probe_pt_presel", &probe_pt_presel);     // -||- of passed probes
         output_tree->Branch("probe_phi", &probe_phi);
         output_tree->Branch("probe_eta", &probe_eta);
-        output_tree->Branch("probe_aco_presel", &probe_aco_presel);
-        output_tree->Branch("probe_aco_postsel", &probe_aco_postsel);
+        output_tree->Branch("TPpair_aco_presel", &TPpair_aco_presel);
+        output_tree->Branch("TPpair_aco_midsel", &TPpair_aco_midsel);
         output_tree->Branch("probe_d0_presel", &probe_d0_presel);
         output_tree->Branch("probe_d0_postsel", &probe_d0_postsel);
         output_tree->Branch("probe_dR_presel", &probe_dR_presel);
-        output_tree->Branch("probe_dR_postsel", &probe_dR_postsel);
+        output_tree->Branch("probe_dR_midsel", &probe_dR_midsel);
 
         output_tree->Branch("TPpair_pt_presel", &TPpair_pt_presel);
-        output_tree->Branch("TPpair_pt_postsel", &TPpair_pt_postsel);
+        output_tree->Branch("TPpair_pt_midsel", &TPpair_pt_midsel);
         output_tree->Branch("TPpair_dR_presel", &TPpair_dR_presel);
         output_tree->Branch("TPpair_dR_postsel", &TPpair_dR_postsel);
         output_tree->Branch("TPpair_M_presel", &TPpair_M_presel);
@@ -174,16 +175,16 @@ void G2TauTree::Loop()
         tag_phi->clear();
         tag_eta->clear();
 
-        probe_pt->clear();
-        // probe_prematch_pt->clear();
+        probe_pt_midsel->clear();
+        probe_pt_presel->clear();
         probe_phi->clear();
         probe_eta->clear();
-        probe_aco_presel->clear();
-        probe_aco_postsel->clear();
+        TPpair_aco_presel->clear();
+        TPpair_aco_midsel->clear();
         probe_d0_presel->clear();
         probe_d0_postsel->clear();
         probe_dR_presel->clear();
-        probe_dR_postsel->clear();
+        probe_dR_midsel->clear();
 
         // passed pairs
         eps_pass->clear(); 
@@ -192,7 +193,7 @@ void G2TauTree::Loop()
         eps_qEta_total->clear();
 
         TPpair_pt_presel->clear();
-        TPpair_pt_postsel->clear();
+        TPpair_pt_midsel->clear();
         TPpair_dR_presel->clear();
         TPpair_dR_postsel->clear();
         TPpair_M_presel->clear();
@@ -265,55 +266,59 @@ void G2TauTree::Loop()
             
                 // distributions before any selections
                 TPpair_M_presel->push_back(v_pair.M());
-                TPpair_pt_presel->push_back(v_pair.Pt());
-                probe_aco_presel->push_back(aco);
-
-
-                TPpair_dR_presel->push_back(tp_dR);
-                if(!(tp_dR>1)) continue;
-                TPpair_dR_postsel->push_back(tp_dR);
-
                 probe_d0_presel->push_back(MSmuon_d0->at(probe));
+                TPpair_dR_presel->push_back(tp_dR);
+
+                // aco-pair pt corr. plots (before any cuts)
+                TPpair_pt_presel->push_back(v_pair.Pt());
+                TPpair_aco_presel->push_back(aco);
+
+
                 if(check_d0){if(!(abs(MSmuon_d0->at(probe))<2)) continue;}
-                probe_d0_postsel->push_back(MSmuon_d0->at(probe));
+
+
+                // aco-pair pt corr. plots (after cuts, before aco/dr cuts)
+                TPpair_pt_midsel->push_back(v_pair.Pt());
+                TPpair_aco_midsel->push_back(aco);
 
                 if(!(v_pair.Pt()<TPpair_pt_threshold)) continue;
-
                 if(!(aco<aco_threshold)) continue;
+                if(!(tp_dR>1)) continue;
 
-                
-                // aco - pair pt correlation
-                probe_aco_postsel->push_back(aco);
-                TPpair_pt_postsel->push_back(v_pair.Pt());
-                
+                probe_d0_postsel->push_back(MSmuon_d0->at(probe));
                 TPpair_M_postsel->push_back(v_pair.M());
+                TPpair_dR_postsel->push_back(tp_dR);
+                
                 eps_total->push_back(MSmuon_pt->at(probe));
                 
                 eps_qEta_total->push_back(MSmuon_eta->at(probe));
 
-                // probe_prematch_pt->push_back(MSmuon_pt->at(probe));
+                // probe_pt_presel->push_back(MSmuon_pt->at(probe));
                 for(int id = 0; id<track_n; id++)
                 {
                     TLorentzVector v_id;
                     v_id.SetPtEtaPhiM(track_pt->at(id), track_eta->at(id), track_phi->at(id), M_mu);
+                    double probe_dR = v_probe.DeltaR(v_id);
 
-                    if(!(track_is_matched_to_muon->at(id))) continue;  // instead of _is_loose_muon
-                    
-                    // check loosePrimary
+                    // dR - probe pt corr. plot
+                    probe_pt_presel->push_back(MSmuon_pt->at(probe));
+                    probe_dR_presel->push_back(probe_dR);
+
+                    if(!(track_is_matched_to_muon->at(id))) continue;  // instead of _is_loose_muon // check loosePrimary
                     if(!(muon_charge->at(tag)*track_charge->at(id)<0)) continue; // bc no MSmuon_charge
                     if(check_d0){if(!(abs(track_d0->at(id))<2)) continue;}
 
-                    double probe_dR = v_probe.DeltaR(v_id);
-                    probe_dR_presel->push_back(probe_dR);
+                    // dR - probe pt corr. plot
+                    probe_pt_midsel->push_back(MSmuon_pt->at(probe));
+                    probe_dR_midsel->push_back(probe_dR);
+
                     if(!(probe_dR<0.1)) continue;
-                    probe_dR_postsel->push_back(probe_dR);
 
                     TPpair_n++;
                     tag_pt->push_back(muon_pt->at(tag));
                     tag_phi->push_back(muon_phi->at(tag));
                     tag_eta->push_back(muon_eta->at(tag));
 
-                    probe_pt->push_back(MSmuon_pt->at(probe));
                     probe_phi->push_back(MSmuon_phi->at(probe));
                     probe_eta->push_back(MSmuon_eta->at(probe));
 
@@ -340,30 +345,32 @@ void G2TauTree::Loop()
             
                 // distributions before any selections
                 TPpair_M_presel->push_back(v_pair.M());
+                probe_d0_presel->push_back(track_d0->at(probe));
+
+                // aco - pair pt corr.
                 TPpair_pt_presel->push_back(v_pair.Pt());
-                probe_aco_presel->push_back(aco);
+                TPpair_aco_presel->push_back(aco);
 
                 if(!(muon_charge->at(tag)*track_charge->at(probe)<0)) continue;
                 // if(!(track_is_LoosePrimary->at(probe))) continue;
-                if(!(track_is_matched_to_muon)) continue;
-                // jaki jest sens ^ skoro probojemy to wyznaczyc
-
-                probe_d0_presel->push_back(track_d0->at(probe));
+                if(!(track_is_matched_to_muon)) continue; // <- jaki jest sens skoro probojemy to wyznaczyc
                 if(check_d0){if(!(abs(track_d0->at(probe))<2)) continue;}
-                probe_d0_postsel->push_back(track_d0->at(probe));
-
-                if(!(v_pair.Pt()<TPpair_pt_threshold)) continue;
-
-                if(!(aco<aco_threshold)) continue;
 
                 // aco - pair pt correlation
-                TPpair_pt_postsel->push_back(v_pair.Pt());
-                probe_aco_postsel->push_back(aco);
+                TPpair_pt_midsel->push_back(v_pair.Pt());
+                TPpair_aco_midsel->push_back(aco);
+
+                if(!(v_pair.Pt()<TPpair_pt_threshold)) continue;
+                if(!(aco<aco_threshold)) continue;
+
+                TPpair_dR_postsel->push_back(tp_dR);
+
+                probe_d0_postsel->push_back(track_d0->at(probe));
                     
 
                 eps_qEta_total->push_back((track_eta->at(probe))*(track_charge->at(probe)));
                 eps_total->push_back(track_pt->at(probe));
-                // probe_prematch_pt->push_back(track_pt->at(probe));
+                // probe_pt_presel->push_back(track_pt->at(probe));
 
                 for(int m_LPt = 0; m_LPt < nMuon; m_LPt++)
                 {
@@ -371,9 +378,9 @@ void G2TauTree::Loop()
                     v_m_LPt.SetPtEtaPhiM(muon_pt->at(m_LPt), muon_eta->at(m_LPt), muon_phi->at(m_LPt), M_mu);
 
                     double probe_dR = v_probe.DeltaR(v_m_LPt);
+                    // dR - probe pt corr.
+                    probe_pt_presel->push_back(track_pt->at(probe));
                     probe_dR_presel->push_back(probe_dR);
-                    if(!(probe_dR<0.01)) continue;
-                    probe_dR_postsel->push_back(probe_dR);
 
                     // probe is tight
                     if(wpTight){
@@ -382,6 +389,12 @@ void G2TauTree::Loop()
                     else{
                         if(!(muon_is_LowPt->at(m_LPt))) continue;
                     }
+
+                    // dR - probe pt corr.
+                    probe_pt_midsel->push_back(track_pt->at(probe));
+                    probe_dR_midsel->push_back(probe_dR);
+
+                    if(!(probe_dR<0.01)) continue;
 
                     // // not tight
                     // if(!(muon_is_LowPt->at(m_LPt))) continue;
@@ -392,7 +405,7 @@ void G2TauTree::Loop()
                     tag_phi->push_back(muon_phi->at(tag));
                     tag_eta->push_back(muon_eta->at(tag));
 
-                    probe_pt->push_back(track_pt->at(probe));
+                    probe_pt_midsel->push_back(track_pt->at(probe));
                     probe_phi->push_back(track_phi->at(probe));
                     probe_eta->push_back(track_eta->at(probe));
                     TPpair_M_postsel->push_back(v_pair.M());
@@ -437,7 +450,7 @@ void G2TauTree::Loop()
     delete eps_qEta_total;
 
     delete TPpair_pt_presel;
-    delete TPpair_pt_postsel;
+    delete TPpair_pt_midsel;
     delete TPpair_M_presel;
     delete TPpair_M_postsel;
     delete TPpair_dR_presel;
@@ -447,15 +460,15 @@ void G2TauTree::Loop()
     delete tag_eta;
     delete tag_phi;
 
-    delete probe_pt;
+    delete probe_pt_midsel;
     delete probe_eta;
     delete probe_phi;
-    delete probe_aco_presel;
-    delete probe_aco_postsel;
+    delete TPpair_aco_presel;
+    delete TPpair_aco_midsel;
     delete probe_d0_presel;
     delete probe_d0_postsel;
     delete probe_dR_presel;
-    delete probe_dR_postsel;
+    delete probe_dR_midsel;
 
 
     output_tree->Write();

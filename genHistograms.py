@@ -41,21 +41,21 @@ def main():
             Entry("tag_phi", 100, -3.5, 3.5),
             Entry("tag_eta", 100, -3, 3),
 
-            Entry("probe_pt", 100, 0, 40),
+            # Entry("probe_pt", 100, 0, 40),
             Entry("probe_phi", 100, -3.5, 3.5),
             Entry("probe_eta", 100, -3, 3),
-            Entry("probe_aco_presel", 100, 0, 0.2),
-            Entry("probe_aco_postsel", 100, 0, 0.2),
             Entry("probe_d0_presel", 400, -200, 200),
             Entry("probe_d0_postsel", 400, -200, 200),
             Entry("probe_dR_presel", 100, 0, 0.3),
-            Entry("probe_dR_postsel", 100, 0, 0.03),
+            Entry("probe_dR_midsel", 100, 0, 0.03),
 
 
+            Entry("TPpair_aco_presel", 100, 0, 0.2),
+            Entry("TPpair_aco_midsel", 100, 0, 0.2),
             Entry("TPpair_pt_presel", 100, 0, 10),
-            Entry("TPpair_pt_postsel", 100, 0, 10),
+            Entry("TPpair_pt_midsel", 100, 0, 10),
             Entry("TPpair_dR_presel", 100, 0, 5),
-            Entry("TPpair_dR_postsel", 100, 0, 5),
+            # Entry("TPpair_dR_postsel", 100, 0, 5),
             Entry("TPpair_M_presel", 100, 0, 100),
             Entry("TPpair_M_postsel", 100, 0, 100)
         ]
@@ -75,8 +75,10 @@ def main():
             Entry("eps_qEta_pass", 24, -2.4, 2.4),
             Entry("eps_qEta_total", 24, -2.4, 2.4),
         ]
-    dR_v_probe_pt = ROOT.TH2D("dR_v_probe_pt", "dR vs. probe pt", 50, 0, 10, 100, 0, 0.3)
-    aco_v_probe_pt = ROOT.TH2D("aco_v_probe_pt", "aco vs. probe pt", 50, 0, 10, 100, 0, 0.3)
+    dR_v_probe_pt_presel = ROOT.TH2D("dR_v_probe_pt_presel", "dR vs. probe pt", 100, 0, 50, 100, 0, 0.3)
+    dR_v_probe_pt_midsel = ROOT.TH2D("dR_v_probe_pt_midsel", "dR vs. probe pt", 100, 0, 50, 100, 0, 0.3)
+    aco_v_probe_pt_presel = ROOT.TH2D("aco_v_probe_pt_presel", "aco vs. probe pt", 100, 0, 5, 100, 0, 0.3)
+    aco_v_probe_pt_midsel = ROOT.TH2D("aco_v_probe_pt_midsel", "aco vs. probe pt", 100, 0, 5, 100, 0, 0.3)
     # histograms = []
     # for entry in histogram_params:
         # histograms.append(ROOT.TH1D("hist_"+entry.name, "hist_"+entry.name, entry.bins, entry.xmin, entry.xmax))
@@ -106,19 +108,36 @@ def main():
             vals = getattr(event, "eps_cutflow")
             for val in vals:
                 hist_eps_cutflow.Fill(val)
-            vals_pt = getattr(event, "eps_total")
-            vals_dR = getattr(event, "probe_dR_presel")
 
-            vals_pair_pt = getattr(event, "TPpair_pt_presel")
-            vals_aco = getattr(event, "probe_aco_presel")
+            # pt - dR corr
+            vals_pt_pre = getattr(event, "probe_pt_presel")
+            vals_dR_pre = getattr(event, "probe_dR_presel")
+            for val_pt_pre in vals_pt_pre:
+                for val_dR_pre in vals_dR_pre:
+                    dR_v_probe_pt_presel.Fill(val_pt_pre, val_dR_pre, weight)
 
-            for val_pt in vals_pt:
-                for val_dR in vals_dR:
-                    dR_v_probe_pt.Fill(val_pt, val_dR, weight)
-            for val_pair_pt in vals_pair_pt:
-                for val_aco in vals_aco:
-                    aco_v_probe_pt.Fill(val_pair_pt, val_aco, weight)
+
+            vals_pt_mid = getattr(event, "probe_pt_midsel")
+            vals_dR_mid = getattr(event, "probe_dR_midsel")
+            for val_pt_mid in vals_pt_mid:
+                for val_dR_mid in vals_dR_mid:
+                    dR_v_probe_pt_midsel.Fill(val_pt_mid, val_dR_mid, weight)
+
+
+            vals_pair_pt_pre = getattr(event, "TPpair_pt_presel")
+            vals_pair_aco_pre = getattr(event, "TPpair_aco_presel")
+            for val_pair_pt_pre in vals_pair_pt_pre:
+                for val_pair_aco_pre in vals_pair_aco_pre:
+                    aco_v_probe_pt_presel.Fill(val_pair_pt_pre, val_pair_aco_pre, weight)
+
+
+            vals_pair_pt_mid = getattr(event, "TPpair_pt_midsel")
+            vals_pair_aco_mid = getattr(event, "TPpair_aco_midsel")
+            for val_pair_pt_mid in vals_pair_pt_mid:
+                for val_pair_aco_mid in vals_pair_aco_mid:
+                    aco_v_probe_pt_midsel.Fill(val_pair_pt_mid, val_pair_aco_mid, weight)
         
+
     print(f"\rProgress: {total_events} / {total_events}", end="", flush=True)
     print("\n[ Done ]")
     print("")
@@ -129,8 +148,10 @@ def main():
         h.Write()
     if save_all:
         hist_eps_cutflow.Write()
-        dR_v_probe_pt.Write()
-        aco_v_probe_pt.Write()
+        dR_v_probe_pt_presel.Write()
+        dR_v_probe_pt_midsel.Write()
+        aco_v_probe_pt_presel.Write()
+        aco_v_probe_pt_midsel.Write()
     
     f_out.Close()
 

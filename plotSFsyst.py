@@ -228,7 +228,7 @@ def main():
     labels = ["Nominal", "Tight", "aco<0.01", "aco<0.03", "ZDC", "no d0", "pair pT<1GeV"]
     style_syst(graphs)
     
-    ymin, ymax = 0.9, 1.1
+    ymin, ymax = 0.5, 1.1
 
     if pT:
         xmin, xmax = 1.0, 50.0
