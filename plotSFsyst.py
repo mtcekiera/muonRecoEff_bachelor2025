@@ -104,7 +104,7 @@ def style_total_band(g):
     g.SetMarkerStyle(1)
 
 def make_legend(graphs, labels):
-    leg = ROOT.TLegend(0.58, 0.64, 0.88, 0.88)
+    leg = ROOT.TLegend(0.58, 0.15, 0.88, 0.37)
     leg.SetBorderSize(0)
     # leg.AddEntry(graphs[0], "Nominal (w0)", "pe")
     leg.AddEntry(graphs[0], labels[0], "P E1")
@@ -114,7 +114,7 @@ def make_legend(graphs, labels):
     return leg
 
 def make_legend_total(nom, total_band):
-    leg = ROOT.TLegend(0.58, 0.64, 0.88, 0.88)
+    leg = ROOT.TLegend(0.58, 0.15, 0.88, 0.37)
     leg.SetBorderSize(0)
     leg.AddEntry(nom, "Nominal (w0)", "pe")
     leg.AddEntry(total_band, "Total syst. (quadrature)", "f")

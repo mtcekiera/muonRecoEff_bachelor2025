@@ -179,6 +179,7 @@ public :
    vector<bool>    *track_is_LoosePrimary;
    vector<bool>    *track_is_TightPrimary;
    vector<bool>    *track_is_HILoose;
+   vector<bool>    *track_is_LooseMuon;
    vector<bool>    *track_is_matched_to_electron;
    vector<bool>    *track_is_matched_to_muon;
    vector<float>   *track_d0;
@@ -329,6 +330,7 @@ public :
    vector<float>   *MSmuon_phi;
    vector<float>   *MSmuon_pt;
    vector<float>   *MSmuon_d0;
+   vector<int>     *MSmuon_charge;
    Float_t         acolt_mt;
    Float_t         Ptlt_mt;
    Float_t         mlt_mt;
@@ -533,6 +535,7 @@ public :
    TBranch        *b_track_is_LoosePrimary;   //!
    TBranch        *b_track_is_TightPrimary;   //!
    TBranch        *b_track_is_HILoose;   //!
+   TBranch        *b_track_is_LooseMuon;   //!
    TBranch        *b_track_is_matched_to_electron;   //!
    TBranch        *b_track_is_matched_to_muon;   //!
    TBranch        *b_track_d0;   //!
@@ -683,6 +686,7 @@ public :
    TBranch        *b_MSmuon_phi;   //!
    TBranch        *b_MSmuon_pt;   //!
    TBranch        *b_MSmuon_d0;   //!
+   TBranch        *b_MSmuon_charge;   //!
    TBranch        *b_acolt_mt;   //!
    TBranch        *b_Ptlt_mt;   //!
    TBranch        *b_mlt_mt;   //!
@@ -876,6 +880,7 @@ void G2TauTree::Init(TTree *tree)
    track_is_LoosePrimary = 0;
    track_is_TightPrimary = 0;
    track_is_HILoose = 0;
+   track_is_LooseMuon = 0;
    track_is_matched_to_electron = 0;
    track_is_matched_to_muon = 0;
    track_d0 = 0;
@@ -997,6 +1002,7 @@ void G2TauTree::Init(TTree *tree)
    MSmuon_phi = 0;
    MSmuon_pt = 0;
    MSmuon_d0 = 0;
+   MSmuon_charge = 0;
    electron_pt_syst_EG_RESOLUTION_ALL__1down = 0;
    photon_pt_syst_EG_RESOLUTION_ALL__1down = 0;
    electron_pt_syst_EG_RESOLUTION_ALL__1up = 0;
@@ -1153,6 +1159,7 @@ void G2TauTree::Init(TTree *tree)
    fChain->SetBranchAddress("track_is_LoosePrimary", &track_is_LoosePrimary, &b_track_is_LoosePrimary);
    fChain->SetBranchAddress("track_is_TightPrimary", &track_is_TightPrimary, &b_track_is_TightPrimary);
    fChain->SetBranchAddress("track_is_HILoose", &track_is_HILoose, &b_track_is_HILoose);
+   fChain->SetBranchAddress("track_is_LooseMuon", &track_is_LooseMuon, &b_track_is_LooseMuon);
    fChain->SetBranchAddress("track_is_matched_to_electron", &track_is_matched_to_electron, &b_track_is_matched_to_electron);
    fChain->SetBranchAddress("track_is_matched_to_muon", &track_is_matched_to_muon, &b_track_is_matched_to_muon);
    fChain->SetBranchAddress("track_d0", &track_d0, &b_track_d0);
@@ -1303,6 +1310,7 @@ void G2TauTree::Init(TTree *tree)
    fChain->SetBranchAddress("MSmuon_phi", &MSmuon_phi, &b_MSmuon_phi);
    fChain->SetBranchAddress("MSmuon_pt", &MSmuon_pt, &b_MSmuon_pt);
    fChain->SetBranchAddress("MSmuon_d0", &MSmuon_d0, &b_MSmuon_d0);
+   fChain->SetBranchAddress("MSmuon_charge", &MSmuon_charge, &b_MSmuon_charge);
    fChain->SetBranchAddress("acolt_mt", &acolt_mt, &b_acolt_mt);
    fChain->SetBranchAddress("Ptlt_mt", &Ptlt_mt, &b_Ptlt_mt);
    fChain->SetBranchAddress("mlt_mt", &mlt_mt, &b_mlt_mt);

@@ -133,9 +133,10 @@ def main():
     id_eff_qeta.SetName("ID_MS_qeta_eff")
     mu_eff_qeta.SetName("mu_ID_qeta_eff")
     total_eff_qeta.SetName("total_qeta_eff")
+    id_eff_qeta.Write()
     mu_eff_qeta.Write()
     total_eff_qeta.Write()
-    total_eff.Write()
+    # total_eff.Write()
 
     f_out.Close()
 

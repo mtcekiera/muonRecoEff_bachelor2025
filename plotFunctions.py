@@ -6,8 +6,8 @@ import sys
 RATIO_YMIN, RATIO_YMAX = 0.5, 1.5
 
 #
-def add_cut_lines_2d(
-    h2,
+def add_cut_lines(
+    hist,
     x_cuts=None,         # list of x values for vertical cuts
     y_cuts=None,         # list of y values for horizontal cuts
     color=ROOT.kRed,
@@ -15,7 +15,7 @@ def add_cut_lines_2d(
     width=2
 ):
     """
-    Draw red dashed cut lines on a 2D histogram (already drawn).
+    Draw red dashed cut lines on a histogram (already drawn).
 
     Returns a list of TLine objects so they don't get garbage-collected.
     """
@@ -24,10 +24,10 @@ def add_cut_lines_2d(
     if y_cuts is None:
         y_cuts = []
 
-    xmin = h2.GetXaxis().GetXmin()
-    xmax = h2.GetXaxis().GetXmax()
-    ymin = h2.GetYaxis().GetXmin()
-    ymax = h2.GetYaxis().GetXmax()
+    xmin = hist.GetXaxis().GetXmin()
+    xmax = hist.GetXaxis().GetXmax()
+    ymin = hist.GetYaxis().GetXmin()
+    ymax = hist.GetYaxis().GetXmax()
 
     lines = []
 
@@ -122,8 +122,8 @@ def draw_2d_full(
         logz=logz
     )
 
-    lines = add_cut_lines_2d(
-        h2 = h2,
+    lines = add_cut_lines(
+        hist = h2,
         x_cuts = x_cuts,
         y_cuts = y_cuts
     )
@@ -136,25 +136,22 @@ def get_hist(tfile, name):
     h = tfile.Get(name)
     if not h:
         return None
-    # Work with an owned clone so we can style without touching the file object
     h = h.Clone(name + "_clone")
     h.SetDirectory(0)
-    # Ensure proper error handling
     if not h.GetSumw2N():
         h.Sumw2()
     return h
 
-
-def style_data_hist(h):
+#
+def style_h_datahist(h):
     h.SetMarkerStyle(20)
     h.SetMarkerSize(0.9)
     h.SetMarkerColor(ROOT.kBlack)
     h.SetLineColor(ROOT.kBlack)
     h.SetLineWidth(2)
 
-
-def style_mc_hist(h):
-    # nice blue line + light fill
+#
+def style_h_mchist(h):
     h.SetLineColor(ROOT.kAzure + 2)
     h.SetLineWidth(2)
     h.SetFillColorAlpha(ROOT.kAzure + 1, 0.35)
@@ -165,7 +162,6 @@ def make_ratio(data, mc):
     ratio = data.Clone(data.GetName() + "_ratio")
     nb = ratio.GetNbinsX()
 
-    # Build MC relative uncertainty band (1 ± sigma_MC/MC)
     x = []
     y = []
     ex = []
@@ -179,20 +175,17 @@ def make_ratio(data, mc):
 
         if M > 0.0:
             r = D / M
-            # Propagate errors assuming uncorrelated:
             if D > 0.0:
                 rel = (eD / D) ** 2 + (eM / M) ** 2
                 er  = r * (rel ** 0.5)
             else:
                 er = 0.0
         else:
-            # No MC in the bin -> define as 0 with 0 error (you can choose to mask instead)
             r, er = 0.0, 0.0
 
         ratio.SetBinContent(i, r)
         ratio.SetBinError(i, er)
 
-        # Uncertainty band for MC: centered at 1, with ey = eM/M when M>0 else 0
         x.append(mc.GetXaxis().GetBinCenter(i))
         y.append(1.0)
         ex.append(0.5 * mc.GetXaxis().GetBinWidth(i))
@@ -207,11 +200,8 @@ def make_ratio(data, mc):
     band.SetLineColor(ROOT.kGray + 2)
     band.SetMarkerStyle(0)
 
-    # ratio.SetTitle("")
-    # ratio.GetYaxis().SetTitle("Data / MC")
     ratio.GetYaxis().SetNdivisions(505)
     ratio.GetYaxis().SetTitleSize(0.11)
-    # ratio.GetYaxis().SetTitleOffset(0.45)
     ratio.GetYaxis().SetLabelSize(0.10)
     ratio.GetXaxis().SetLabelSize(0.10)
     ratio.GetXaxis().SetTitleSize(0.12)
@@ -224,8 +214,7 @@ def make_ratio(data, mc):
     return ratio, band
 
 
-def draw_one(canvas, data_h, mc_h, title, logy=False):
-    # Create two pads: upper for spectra, lower for ratio
+def draw_one(canvas, h_data, h_mc, title, logy=False, cut:float|None=None):
     canvas.Clear()
     pad1 = ROOT.TPad("pad1", "pad1", 0, 0.30, 1, 1.00)
     pad2 = ROOT.TPad("pad2", "pad2", 0, 0.00, 1, 0.30)
@@ -236,73 +225,89 @@ def draw_one(canvas, data_h, mc_h, title, logy=False):
     pad2.Draw()
     pad2.SetGrid(True)
 
-    # Upper pad
     pad1.cd()
     if logy:
         pad1.SetLogy()
 
-    # Adjust y-range for nicer visuals on log/lin
-    # Compute maxima after drawing styles
-    style_mc_hist(mc_h)
-    style_data_hist(data_h)
+    style_h_mchist(h_mc)
+    style_h_datahist(h_data)
 
-    # Ensure the axes titles are set from the supplied 'title'
-    # if title:
-    data_h.SetTitle(title)
-    mc_h.Draw("HIST")
-    data_h.Draw("E1 SAME")
-    mc_h.GetXaxis().SetLabelSize(0)
+    h_mc.SetTitle(title)
+    h_data.SetTitle(title)
 
-    # y-range
-    max_y = max(mc_h.GetMaximum(), data_h.GetMaximum())
+    # 1) draw first
+    h_mc.Draw("HIST")
+    h_data.Draw("E1 SAME")
+
+    # 2) now fix min/max
+    max_y = max(h_mc.GetMaximum(), h_data.GetMaximum())
     if logy:
-        mc_h.SetMinimum(max(1e-3, 0.5e-3))  # small positive min
-        mc_h.SetMaximum(max_y * 10.0)
+        h_mc.SetMinimum(0.1)            # > 0 in log
+        h_mc.SetMaximum(max_y * 10.0)   # headroom
     else:
-        mc_h.SetMinimum(0.0)
-        mc_h.SetMaximum(max_y * 1.35)
+        h_mc.SetMinimum(0.0)
+        h_mc.SetMaximum(max_y * 1.35)
 
-    # Delete stats
+    h_mc.GetXaxis().SetLabelSize(0)
+    h_mc.GetYaxis().SetTitleSize(0.04)
+
     ROOT.gStyle.SetOptStat(0)
 
-    # Legend
     leg = ROOT.TLegend(0.60, 0.72, 0.88, 0.89)
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
-    leg.AddEntry(data_h, "Data", "lep")
-    leg.AddEntry(mc_h,   "MC",   "f")
+    leg.AddEntry(h_data, "Data 2023", "lep")
+    leg.AddEntry(h_mc,   "SuperChic #gamma#gamma#rightarrow#mu#mu", "f")
     leg.Draw()
 
-    # Lower pad (ratio)
+    # 3) force ROOT to recompute the coord system
+    pad1.Modified()
+    pad1.Update()
+
+    # 4) NOW query pad coords and draw the vertical line
+    cut_line = None
+    if cut is not None:
+        ymin = pad1.GetUymin()
+        ymax = pad1.GetUymax()
+        # print(f'ymax = {ymax}')
+        if logy:
+            ymax = 10**ymax
+        cut_line = ROOT.TLine(cut, ymin, cut, ymax)
+        cut_line.SetLineColor(ROOT.kRed)
+        cut_line.SetLineStyle(2)
+        cut_line.SetLineWidth(2)
+        cut_line.Draw("SAME")
     pad2.cd()
-    ratio, band = make_ratio(data_h, mc_h)
+    ratio, band = make_ratio(h_data, h_mc)
     ratio.GetYaxis().SetRangeUser(RATIO_YMIN, RATIO_YMAX)
 
-    # Draw band first, then ratio points
     frame = pad2.DrawFrame(
-        data_h.GetXaxis().GetXmin(), RATIO_YMIN,
-        data_h.GetXaxis().GetXmax(), RATIO_YMAX
+        h_data.GetXaxis().GetXmin(), RATIO_YMIN,
+        h_data.GetXaxis().GetXmax(), RATIO_YMAX
     )
-    # frame.GetYaxis().SetTitle(data_h.GetYaxis().GetTitle())
+    frame.GetYaxis().SetTitle("Data/MC")
     frame.GetYaxis().SetNdivisions(505)
     frame.GetYaxis().SetTitleSize(0.11)
     frame.GetYaxis().SetTitleOffset(0.45)
     frame.GetYaxis().SetLabelSize(0.10)
-    frame.GetXaxis().SetTitle(data_h.GetXaxis().GetTitle())
+    frame.GetXaxis().SetTitle(h_data.GetXaxis().GetTitle())
     frame.GetXaxis().SetTitleSize(0.12)
     frame.GetXaxis().SetLabelSize(0.10)
-    # data_h.GetYaxis().SetTitle(data_h.GetYaxis().GetTitle())
 
-    band.Draw("E2 SAME")
     ratio.Draw("E1 SAME")
 
-    # Draw horizontal line at 1
-    line = ROOT.TLine(data_h.GetXaxis().GetXmin(), 1.0,
-                      data_h.GetXaxis().GetXmax(), 1.0)
+
+    line = ROOT.TLine(h_data.GetXaxis().GetXmin(), 1.0,
+                      h_data.GetXaxis().GetXmax(), 1.0)
     line.SetLineStyle(2)
     line.SetLineColor(ROOT.kRed)
     line.Draw("SAME")
-
+    if not hasattr(canvas, "keep"):
+        canvas.keep = []
+    objs = [leg, band, ratio, line, pad1, pad2]
+    if cut_line is not None:
+        objs.append(cut_line)
+    canvas.keep.extend(objs)
     canvas.Update()
 
 
@@ -312,11 +317,12 @@ def plot_1d_histogram(
         mc_file:str,
         output_pdf:str,
         h_name:str,
+        cut = None,
         canvas_size=(800, 600),
         logy = False,
         title = '',
         xlabel = '',
-        ylabel = ''
+        ylabel = '',
 ):
     f_data = ROOT.TFile.Open(data_file, "READ")
     f_mc   = ROOT.TFile.Open(mc_file,   "READ")
@@ -338,8 +344,9 @@ def plot_1d_histogram(
         return
 
     full_desc = title+';'+xlabel+';'+ylabel
-    h_data.SetTitle(title)  # also sets axes if provided as "title;X;Y"
-    draw_one(c, h_data, h_mc, full_desc, logy=logy)
+    h_data.SetTitle(title)
+    draw_one(c, h_data, h_mc, full_desc, logy=logy, cut=cut)
+
     c.Print(output_pdf)
 
     f_data.Close()

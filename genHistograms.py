@@ -38,34 +38,47 @@ def main():
             Entry("eps_qEta_total", 24, -2.4, 2.4),
 
             Entry("tag_pt", 100, 0, 40),
-            Entry("tag_phi", 100, -3.5, 3.5),
+            Entry("tag_phi", 100, -3.2, 3.2),
             Entry("tag_eta", 100, -3, 3),
 
-            # Entry("probe_pt", 100, 0, 40),
-            Entry("probe_phi", 100, -3.5, 3.5),
+
+            Entry("probe_pt",  100, 0, 40),
+            Entry("probe_phi", 100, -3.2, 3.2),
             Entry("probe_eta", 100, -3, 3),
-            Entry("probe_d0_presel", 400, -200, 200),
-            Entry("probe_d0_postsel", 400, -200, 200),
+
+            Entry("probe_pt_presel", 100, 0, 40),
+            Entry("probe_pt_midsel", 100, 0, 40),
+            Entry("probe_pt_postsel", 100, 0, 40),
+
+            Entry("probe_phi_presel", 100, -3.2, 3.2),
+            Entry("probe_phi_postsel", 100, -3.2, 3.2),
+
+            Entry("probe_eta_presel", 100, -3, 3),
+            Entry("probe_eta_postsel", 100, -3, 3),
+
+            Entry("probe_d0_presel", 100, -25, 25),
+            Entry("probe_d0_postsel", 100, -25, 25),
+            
             Entry("probe_dR_presel", 100, 0, 0.3),
             Entry("probe_dR_midsel", 100, 0, 0.03),
 
 
             Entry("TPpair_aco_presel", 100, 0, 0.2),
             Entry("TPpair_aco_midsel", 100, 0, 0.2),
+
             Entry("TPpair_pt_presel", 100, 0, 10),
             Entry("TPpair_pt_midsel", 100, 0, 10),
+            Entry("TPpair_pt_postsel", 100, 0, 10),
+
             Entry("TPpair_dR_presel", 100, 0, 5),
-            # Entry("TPpair_dR_postsel", 100, 0, 5),
+            Entry("TPpair_dR_postsel", 100, 0, 5),
+
             Entry("TPpair_M_presel", 100, 0, 100),
             Entry("TPpair_M_postsel", 100, 0, 100)
         ]
         hist_eps_cutflow = ROOT.TH1I("hist_eps_cutflow", "hist_eps_cutflow", 20, 0, 20)
 
-        cuts = ["All", "HLT", "nMuon>=1", "track_n<=2", "[ tag loop ]", "muon_is_Loose", "|muon_eta|<2.4", "muon_pt>3", "[ probe loop ]"]
-        if "ID_MS" in input:
-            cuts = cuts + ["opposite charge", "|track_d0|<2", "tp pair pt<2", "tp pair aco<0.02", "[ ms muon loop]", "dR<0.1", "ms muon d0<2"]
-        else:
-            cuts = cuts + ["opposite charge", "|track_d0|<2", "track_is_LoosePrimary", "tp pair pt<2", "tp pair aco<0.02", "[ muon low pt loop ]", "dR<0.01"]
+        cuts = ["All", "HLT", "passes ZDC", "nMuon>=1", "track_n<=2", "at least 1 matched probe"]
         for i in range(len(cuts)):
             hist_eps_cutflow.GetXaxis().SetBinLabel(i+1, cuts[i])
     else:
