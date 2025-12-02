@@ -86,7 +86,7 @@ def main():
             Entry("eps_pass", 100, 0, 50),
             Entry("eps_total", 100, 0, 50),
             Entry("eps_qEta_pass", 24, -2.4, 2.4),
-            Entry("eps_qEta_total", 24, -2.4, 2.4),
+            Entry("eps_qEta_total", 24, -2.4, 2.4)
         ]
     dR_v_probe_pt_presel = ROOT.TH2D("dR_v_probe_pt_presel", "dR vs. probe pt", 100, 0, 50, 100, 0, 0.3)
     dR_v_probe_pt_midsel = ROOT.TH2D("dR_v_probe_pt_midsel", "dR vs. probe pt", 100, 0, 50, 100, 0, 0.3)

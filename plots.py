@@ -1,16 +1,19 @@
 import ROOT
 import plotFunctions as pf
 
-ID_MS_DATAFILE = "output/ID_MS/w0/hist_data23.root" 
-MU_ID_DATAFILE = "output/mu_ID/w0/hist_data23.root" 
+IDMS_DATA_FNAME = "output/ID_MS/w0/hist_data23.root" 
+MUID_DATA_FNAME = "output/mu_ID/w0/hist_data23.root" 
 
-ID_MS_MCFILE = "output/ID_MS/w0/hist_mc_sc.root" 
-MU_ID_MCFILE = "output/mu_ID/w0/hist_mc_sc.root" 
+IDMS_MC_FNAME = "output/ID_MS/w0/hist_mc_sc.root" 
+MUID_MC_FNAME = "output/mu_ID/w0/hist_mc_sc.root" 
+
+EFF_DATA_FNAME = "output/eff/w0/eff_data23.root" 
+EFF_MC_FNAME = "output/eff/w0/eff_mc_sc.root" 
 
 
 _H2D = [
     {
-    'in_fname': ID_MS_DATAFILE,
+    'in_fname': IDMS_DATA_FNAME,
     'h2_name': "aco_v_probe_pt_presel",
     'x_label':"#it{p}_{#it{T}}^{ID,exMS}",
     'y_label':"#it{a}_{#it{#phi}}^{ID,exMS}",
@@ -19,7 +22,7 @@ _H2D = [
     'pdf_name':"paper/idms/aco_v_pairPt.pdf"},
 
     {
-    'in_fname': MU_ID_DATAFILE,
+    'in_fname': MUID_DATA_FNAME,
     'h2_name': "aco_v_probe_pt_presel",
     'x_label':"#it{p}_{#it{T}}^{#it{#mu},ID}",
     'y_label':"#it{a}_{#it{#phi}}^{#it{#mu},ID}",
@@ -29,7 +32,7 @@ _H2D = [
     },
 
     {
-    'in_fname': ID_MS_DATAFILE,
+    'in_fname': IDMS_DATA_FNAME,
     'h2_name': "dR_v_probe_pt_presel",
     'x_label': "#it{p}_{#it{T}}^{exMS}",
     'y_label': "#Delta#it{R}^{exMS,ID}",
@@ -38,7 +41,7 @@ _H2D = [
     },
 
     {
-    'in_fname': MU_ID_DATAFILE,
+    'in_fname': MUID_DATA_FNAME,
     'h2_name': "dR_v_probe_pt_presel",
     'x_label': "#it{p}_{#it{T}}^{ID}",
     'y_label': "#Delta#it{R}^{#it{#mu},ID}",
@@ -49,8 +52,8 @@ _H2D = [
 
 _H1D = [
     {
-        'h_name':       'probe_qEta_total',
-        'output_pdf':   'probe_qEta_total.pdf',
+        'h_name':       'probe_eta',
+        'output_pdf':   'probe_eta.pdf',
         'xlabel-idms':  '#it{q#eta}^{exMS}',
         'xlabel-muid':  '#it{q#eta}^{ID}',
         'ylabel':       'no. of probes',
@@ -166,7 +169,6 @@ _H1D = [
         'cut':          None
     },
 ]
-
 IDMS_H1D = []
 MUID_H1D = []
  
@@ -174,15 +176,15 @@ for h1d in _H1D:
     idms_h1d = h1d.copy()
     muid_h1d = h1d.copy()
 
-    idms_h1d['data_file'] = ID_MS_DATAFILE
-    idms_h1d['mc_file'] = ID_MS_MCFILE
+    idms_h1d['data_fname'] = IDMS_DATA_FNAME
+    idms_h1d['mc_fname'] = IDMS_MC_FNAME
     idms_h1d['output_pdf'] = 'paper/idms/' + idms_h1d['output_pdf']
     idms_h1d['xlabel'] = idms_h1d['xlabel-idms']
     idms_h1d.pop("xlabel-idms")
     idms_h1d.pop("xlabel-muid")
 
-    muid_h1d['data_file'] = MU_ID_DATAFILE
-    muid_h1d['mc_file'] = MU_ID_MCFILE
+    muid_h1d['data_fname'] = MUID_DATA_FNAME
+    muid_h1d['mc_fname'] = MUID_MC_FNAME
     muid_h1d['output_pdf'] = 'paper/muid/' + muid_h1d['output_pdf']
     muid_h1d['xlabel'] = muid_h1d['xlabel-muid']
     muid_h1d.pop("xlabel-idms")
@@ -191,9 +193,67 @@ for h1d in _H1D:
     IDMS_H1D.append(idms_h1d)
     MUID_H1D.append(muid_h1d)
 
+_EFF = [
+    {
+        'data_fname':   EFF_DATA_FNAME,
+        'mc_fname':     EFF_MC_FNAME,
+        'output_pdf':   'paper/eff/ID_MS_eff.pdf',
+        'obj_name':     'ID_MS_eff',
+        'logx':         True,
+        'xlabel':       '#it{p}_{#it{T}} [GeV]',
+        'ylabel':       '#it{#varepsilon}(ID|MS)'
+    },
+    {
+        'data_fname':   EFF_DATA_FNAME,
+        'mc_fname':     EFF_MC_FNAME,
+        'output_pdf':   'paper/eff/mu_ID_eff.pdf',
+        'obj_name':     'mu_ID_eff',
+        'logx':         True,
+        'xlabel':       '#it{p}_{#it{T}} [GeV]',
+        'ylabel':       '#it{#varepsilon}(#mu|ID)'
+    },
+    {
+        'data_fname':   EFF_DATA_FNAME,
+        'mc_fname':     EFF_MC_FNAME,
+        'output_pdf':   'paper/eff/total_eff.pdf',
+        'obj_name':     'total_eff',
+        'logx':         True,
+        'xlabel':       '#it{p}_{#it{T}} [GeV]',
+        'ylabel':       '#it{#varepsilon}(#mu)'
+    },
+    {
+        'data_fname':   EFF_DATA_FNAME,
+        'mc_fname':     EFF_MC_FNAME,
+        'output_pdf':   'paper/eff/ID_MS_qEta_eff.pdf',
+        'obj_name':     'ID_MS_qeta_eff',
+        'logx':         False,
+        'xlabel':       '#it{q#eta}',
+        'ylabel':       '#it{#varepsilon}(ID|MS)'
+    },
+    {
+        'data_fname':   EFF_DATA_FNAME,
+        'mc_fname':     EFF_MC_FNAME,
+        'output_pdf':   'paper/eff/mu_ID_qEta_eff.pdf',
+        'obj_name':     'mu_ID_qeta_eff',
+        'logx':         False,
+        'xlabel':       '#it{q#eta}',
+        'ylabel':       '#it{#varepsilon}(#mu|ID)'
+    },
+    {
+        'data_fname':   EFF_DATA_FNAME,
+        'mc_fname':     EFF_MC_FNAME,
+        'output_pdf':   'paper/eff/total_qEta_eff.pdf',
+        'obj_name':     'total_qeta_eff',
+        'logx':         False,
+        'xlabel':       '#it{q#eta}',
+        'ylabel':       '#it{#varepsilon}(#mu)'
+    }
+]
 
-for kwargs in _H2D:
-    pf.draw_2d_full(**kwargs)
-for kwargs_idms, kwargs_muid in zip(IDMS_H1D, MUID_H1D):
-    pf.plot_1d_histogram(**kwargs_idms)
-    pf.plot_1d_histogram(**kwargs_muid)
+# for kwargs in _H2D:
+#     pf.plot_2d_histogram(**kwargs)
+# for kwargs_idms, kwargs_muid in zip(IDMS_H1D, MUID_H1D):
+#     pf.plot_1d_histogram(**kwargs_idms)
+#     pf.plot_1d_histogram(**kwargs_muid)
+for kwargs in _EFF:
+    pf.plot_efficiency(**kwargs)

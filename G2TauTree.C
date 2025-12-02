@@ -144,9 +144,9 @@ void G2TauTree::Loop()
         output_tree->Branch("probe_pt_midsel", &probe_pt_midsel); 
         output_tree->Branch("probe_pt_postsel", &probe_pt_postsel);
 
-        output_tree->Branch("probe_eta", &probe_eta);
-        output_tree->Branch("probe_phi", &probe_phi);
         output_tree->Branch("probe_pt", &probe_pt);
+        output_tree->Branch("probe_phi", &probe_phi);
+        output_tree->Branch("probe_eta", &probe_eta);
         
         output_tree->Branch("probe_phi_presel", &probe_phi_presel);
         output_tree->Branch("probe_phi_postsel", &probe_phi_postsel);
@@ -335,14 +335,15 @@ void G2TauTree::Loop()
 
                 if(!(v_pair.Pt()<TPpair_pt_threshold)) continue;
                 if(!(aco<aco_threshold)) continue;
-                if(!(muon_charge->at(tag) * MSmuon_charge->at(probe) < 0))
+                if(!(muon_charge->at(tag) * MSmuon_charge->at(probe) < 0)) continue;
+                // if(!(abs(MSmuon_eta->at(probe))<2.4)) continue;
 
-                probe_eta->push_back(MSmuon_eta->at(probe));
-                probe_phi->push_back(MSmuon_phi->at(probe));
                 probe_pt->push_back(MSmuon_pt->at(probe));
+                probe_phi->push_back(MSmuon_phi->at(probe));
+                probe_eta->push_back(MSmuon_eta->at(probe));
                 
                 eps_total->push_back(MSmuon_pt->at(probe));
-                eps_qEta_total->push_back(MSmuon_eta->at(probe)*MSmuon_charge->at(probe));
+                eps_qEta_total->push_back((MSmuon_eta->at(probe))*(MSmuon_charge->at(probe)));
 
                 for(int id = 0; id<track_n; id++)
                 {
@@ -529,4 +530,3 @@ void G2TauTree::Loop()
     output_tree->Write();
     output_file->Close();
 }
-

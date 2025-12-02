@@ -1,17 +1,18 @@
 import ROOT
 import sys
+from array import array
 
 ### CONFIG ###
 
 RATIO_YMIN, RATIO_YMAX = 0.5, 1.5
 
-#
+# ------------- 2D histograms -------------
 def add_cut_lines(
     hist,
-    x_cuts=None,         # list of x values for vertical cuts
-    y_cuts=None,         # list of y values for horizontal cuts
+    x_cuts=None,
+    y_cuts=None,
     color=ROOT.kRed,
-    style=2,             # 2 = dashed
+    style=2,
     width=2
 ):
     """
@@ -31,7 +32,6 @@ def add_cut_lines(
 
     lines = []
 
-    # vertical cuts: x = const
     for xc in x_cuts:
         line = ROOT.TLine(xc, ymin, xc, ymax)
         line.SetLineColor(color)
@@ -40,7 +40,6 @@ def add_cut_lines(
         line.Draw("SAME")
         lines.append(line)
 
-    # horizontal cuts: y = const
     for yc in y_cuts:
         line = ROOT.TLine(xmin, yc, xmax, yc)
         line.SetLineColor(color)
@@ -66,9 +65,8 @@ def draw_2d_hist(
 ):
     c = ROOT.TCanvas(canvas_name, canvas_name, canvas_size[0], canvas_size[1])
 
-    # Bigger margins so axes + colorbar aren't cut
     c.SetLeftMargin(0.13)
-    c.SetRightMargin(0.14)   # <- key bit
+    c.SetRightMargin(0.14)
     c.SetBottomMargin(0.15)
     c.SetTopMargin(0.05)
 
@@ -87,10 +85,6 @@ def draw_2d_hist(
     h2.GetYaxis().SetTitleSize(0.045)
     h2.GetZaxis().SetTitleSize(0.045)
 
-    # h2.GetXaxis().SetTitleOffset(1.2)
-    # h2.GetYaxis().SetTitleOffset(0.8)
-    # h2.GetZaxis().SetTitleOffset(1.4)  # sometimes needs a bit more
-
     h2.Draw("COLZ")
 
     if title_text:
@@ -103,7 +97,7 @@ def draw_2d_hist(
     return c
 
 #
-def draw_2d_full(
+def plot_2d_histogram(
         *,in_fname,
         h2_name,
         x_label = "",
@@ -131,7 +125,7 @@ def draw_2d_full(
     f.Close()
 
 
-#####
+# ------------- 1D histograms -------------
 def get_hist(tfile, name):
     h = tfile.Get(name)
     if not h:
@@ -214,7 +208,7 @@ def make_ratio(data, mc):
     return ratio, band
 
 
-def draw_one(canvas, h_data, h_mc, title, logy=False, cut:float|None=None):
+def draw_one_h1d(canvas, h_data, h_mc, title, logy=False, cut:float|None=None):
     canvas.Clear()
     pad1 = ROOT.TPad("pad1", "pad1", 0, 0.30, 1, 1.00)
     pad2 = ROOT.TPad("pad2", "pad2", 0, 0.00, 1, 0.30)
@@ -235,15 +229,13 @@ def draw_one(canvas, h_data, h_mc, title, logy=False, cut:float|None=None):
     h_mc.SetTitle(title)
     h_data.SetTitle(title)
 
-    # 1) draw first
     h_mc.Draw("HIST")
     h_data.Draw("E1 SAME")
 
-    # 2) now fix min/max
     max_y = max(h_mc.GetMaximum(), h_data.GetMaximum())
     if logy:
-        h_mc.SetMinimum(0.1)            # > 0 in log
-        h_mc.SetMaximum(max_y * 10.0)   # headroom
+        h_mc.SetMinimum(0.1)
+        h_mc.SetMaximum(max_y * 10.0)
     else:
         h_mc.SetMinimum(0.0)
         h_mc.SetMaximum(max_y * 1.35)
@@ -260,16 +252,13 @@ def draw_one(canvas, h_data, h_mc, title, logy=False, cut:float|None=None):
     leg.AddEntry(h_mc,   "SuperChic #gamma#gamma#rightarrow#mu#mu", "f")
     leg.Draw()
 
-    # 3) force ROOT to recompute the coord system
     pad1.Modified()
     pad1.Update()
 
-    # 4) NOW query pad coords and draw the vertical line
     cut_line = None
     if cut is not None:
         ymin = pad1.GetUymin()
         ymax = pad1.GetUymax()
-        # print(f'ymax = {ymax}')
         if logy:
             ymax = 10**ymax
         cut_line = ROOT.TLine(cut, ymin, cut, ymax)
@@ -313,8 +302,8 @@ def draw_one(canvas, h_data, h_mc, title, logy=False, cut:float|None=None):
 
 def plot_1d_histogram(
         *,
-        data_file:str,
-        mc_file:str,
+        data_fname:str,
+        mc_fname:str,
         output_pdf:str,
         h_name:str,
         cut = None,
@@ -324,12 +313,12 @@ def plot_1d_histogram(
         xlabel = '',
         ylabel = '',
 ):
-    f_data = ROOT.TFile.Open(data_file, "READ")
-    f_mc   = ROOT.TFile.Open(mc_file,   "READ")
+    f_data = ROOT.TFile.Open(data_fname, "READ")
+    f_mc   = ROOT.TFile.Open(mc_fname,   "READ")
     if not f_data or f_data.IsZombie():
-        sys.exit(f"ERROR: cannot open data file: {data_file}")
+        sys.exit(f"ERROR: cannot open data file: {data_fname}")
     if not f_mc or f_mc.IsZombie():
-        sys.exit(f"ERROR: cannot open MC file: {mc_file}")
+        sys.exit(f"ERROR: cannot open MC file: {mc_fname}")
 
     c = ROOT.TCanvas("c", "c", canvas_size[0], canvas_size[1])
 
@@ -345,10 +334,162 @@ def plot_1d_histogram(
 
     full_desc = title+';'+xlabel+';'+ylabel
     h_data.SetTitle(title)
-    draw_one(c, h_data, h_mc, full_desc, logy=logy, cut=cut)
+    draw_one_h1d(c, h_data, h_mc, full_desc, logy=logy, cut=cut)
 
     c.Print(output_pdf)
 
     f_data.Close()
     f_mc.Close()
     print(f"Saved: {output_pdf}")
+
+# ------------- efficiency plots -------------
+
+def ratio_of_TEff(e1, e2):
+    g = ROOT.TGraphAsymmErrors(); ROOT.SetOwnership(g, False)
+    h1, h2 = e1.GetTotalHistogram(), e2.GetTotalHistogram()
+    for i in range(1, h1.GetNbinsX() + 1):
+        if h1.GetBinContent(i) <= 0 or h2.GetBinContent(i) <= 0:
+            continue
+        x  = h1.GetXaxis().GetBinCenter(i)
+        ex = 0.5 * h1.GetXaxis().GetBinWidth(i)
+        a, au, ad = e1.GetEfficiency(i), e1.GetEfficiencyErrorUp(i),  e1.GetEfficiencyErrorLow(i)
+        b, bu, bd = e2.GetEfficiency(i), e2.GetEfficiencyErrorUp(i),  e2.GetEfficiencyErrorLow(i)
+        if b <= 0: 
+            continue
+        r = a / b
+        r_hi = min(a + au, 1.0) / max(b - bd, 1e-12) - r
+        r_lo = r - max(a - ad, 0.0) / min(b + bu, 1.0)
+        p = g.GetN()
+        g.SetPoint(p, x, r)
+        g.SetPointError(p, ex, ex, max(0.0, r_lo), max(0.0, r_hi))
+    return g
+
+def ratio_of_TGraphs(g1, g2):
+    g = ROOT.TGraphAsymmErrors(); ROOT.SetOwnership(g, False)
+    n = min(g1.GetN(), g2.GetN())
+    for i in range(n):
+        x1 = array('d', [0.0]); y1 = array('d', [0.0])
+        x2 = array('d', [0.0]); y2 = array('d', [0.0])
+        g1.GetPoint(i, x1, y1); g2.GetPoint(i, x2, y2)
+        y2v = y2[0]
+        if y2v <= 0: 
+            continue
+        r = y1[0] / y2v
+        eyl1, eyh1 = g1.GetErrorYlow(i),  g1.GetErrorYhigh(i)
+        eyl2, eyh2 = g2.GetErrorYlow(i),  g2.GetErrorYhigh(i)
+        exl1, exh1 = g1.GetErrorXlow(i),  g1.GetErrorXhigh(i)
+        r_hi = (y1[0] + eyh1) / max(y2v - eyl2, 1e-12) - r
+        r_lo = r - (y1[0] - eyl1) / min(y2v + eyh2, 1.0)
+        p = g.GetN()
+        g.SetPoint(p, x1[0], r)
+        g.SetPointError(p, exl1, exh1, max(0.0, r_lo), max(0.0, r_hi))
+    return g
+
+# ---------- style ----------
+def style_obj(o, color, marker):
+    # Works for TEfficiency and TGraphAsymmErrors
+    o.SetLineColor(color)
+    o.SetMarkerColor(color)
+    o.SetMarkerStyle(marker)
+    o.SetLineWidth(2)
+
+
+def draw_one_eff(canvas, data_obj, mc_obj, title, xlabel, ylabel, logx=False):
+    canvas.Clear(); canvas.Divide(1, 2)
+    is_eff = data_obj.InheritsFrom("TEfficiency")
+    xmin, xmax = -2.4, 2.4
+    if logx:
+        xmin, xmax = 3, 50
+    pad1 = canvas.cd(1)
+    pad1.SetPad(0, 0.30, 1, 1)
+    pad1.SetBottomMargin(0.02)
+    # pad1.SetGrid()
+    if(logx):
+        pad1.SetLogx()
+
+    frame_top = pad1.DrawFrame(xmin, 0.7, xmax, 1.05)
+    frame_top.SetTitle(f"{title};{xlabel};{ylabel}")
+    frame_top.GetXaxis().SetLabelSize(0)
+    frame_top.GetXaxis().SetTitleSize(0)
+
+    style_obj(data_obj, ROOT.kBlack, 20)
+    style_obj(mc_obj,   ROOT.kRed + 1, 24)
+    data_obj.Draw("P SAME")
+    mc_obj.Draw("P SAME")
+
+    leg = ROOT.TLegend(0.60, 0.10, 0.88, 0.28)
+    leg.SetBorderSize(0)
+    leg.AddEntry(data_obj, "Data 2023", "pe")
+    leg.AddEntry(mc_obj,   "SuperChic #gamma#gamma#rightarrow#mu#mu",   "pe")
+    leg.Draw()
+
+    pad2 = canvas.cd(2)
+    pad2.SetPad(0, 0, 1, 0.30)
+    pad2.SetTopMargin(0.05)
+    pad2.SetBottomMargin(0.35)
+    # pad2.SetGridy()
+    if logx:
+        pad2.SetLogx()
+
+    frame_bot = pad2.DrawFrame(xmin, 0.5, xmax, 1.5)
+    xaxis_bot = frame_bot.GetXaxis()
+    yaxis_bot = frame_bot.GetYaxis()
+
+    xaxis_bot.SetTitle(xlabel)
+    yaxis_bot.SetTitle("Data/MC")
+    yaxis_bot.SetNdivisions(505)
+    xaxis_bot.SetTitleSize(0.11)
+    yaxis_bot.SetTitleSize(0.11)
+    xaxis_bot.SetLabelSize(0.10)
+    yaxis_bot.SetLabelSize(0.10)
+    yaxis_bot.SetTitleOffset(0.45)
+    xaxis_bot.SetTitleOffset(1.2)  # or 1.3 if you want more space
+
+    if logx:
+        xaxis_bot.SetMoreLogLabels(True)
+        xaxis_bot.SetNoExponent(True)
+        pad2.SetTicks(1, 1)
+
+    one = ROOT.TLine(xmin, 1.0, xmax, 1.0)
+    one.SetLineColor(ROOT.kRed)
+    one.SetLineWidth(2)
+    one.SetLineStyle(2)
+    one.Draw()
+
+    gr = ratio_of_TEff(data_obj, mc_obj) if is_eff else ratio_of_TGraphs(data_obj, mc_obj)
+    style_obj(gr, ROOT.kBlack, 20)
+    gr.Draw("P SAME")
+    if not hasattr(canvas, "keep"):
+        canvas.keep = []
+    canvas.keep.extend([one, leg])
+    canvas.Modified()
+    canvas.Update()
+
+def plot_efficiency( *,
+        data_fname:str,
+        mc_fname:str,
+        output_pdf:str,
+        obj_name:str,
+        canvas_size=[800, 600],
+        logx = False,
+        title = '',
+        xlabel = '',
+        ylabel = '',
+):
+    fD = ROOT.TFile.Open(data_fname)
+    fM = ROOT.TFile.Open(mc_fname)
+
+    if not fD:
+        raise FileExistsError(f'{data_fname} does not exist')
+
+    if not fM:
+        raise FileExistsError(f'{mc_fname} does not exist')
+    
+    data_eff, mc_eff = fD.Get(obj_name), fM.Get(obj_name)
+    if not data_eff or not mc_eff:
+        print(f"Warning: {obj_name} missing in one of the files")
+        return
+    
+    c = ROOT.TCanvas("c", "c", canvas_size[0], canvas_size[1])
+    draw_one_eff(c, data_eff, mc_eff, title, xlabel, ylabel, logx)
+    c.Print(output_pdf)

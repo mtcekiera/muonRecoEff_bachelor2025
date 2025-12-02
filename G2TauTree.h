@@ -330,7 +330,7 @@ public :
    vector<float>   *MSmuon_phi;
    vector<float>   *MSmuon_pt;
    vector<float>   *MSmuon_d0;
-   vector<int>     *MSmuon_charge;
+   vector<float>     *MSmuon_charge;
    Float_t         acolt_mt;
    Float_t         Ptlt_mt;
    Float_t         mlt_mt;

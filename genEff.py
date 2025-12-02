@@ -3,7 +3,7 @@ import os, sys
 from array import array
 
 # GLOBAL
-BIN_EDGES = [1.0, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.5, 7.5, 10.0, 12.5, 15.0, 50.0]
+BIN_EDGES = [3.0, 3.5, 4.0, 4.5, 5.5, 7.5, 10.0, 12.5, 15.0, 50.0]
 HNAME_PASS_PT  = "eps_pass"
 HNAME_TOTAL_PT = "eps_total"
 HNAME_PASS_QETA  = "eps_qEta_pass"

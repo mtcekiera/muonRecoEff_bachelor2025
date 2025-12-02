@@ -2,6 +2,8 @@
 import argparse
 import sys
 import ROOT
+import os
+import subprocess
 
 VALID_WP = range(0, 7)  # 0–6
 
@@ -254,9 +256,6 @@ def do_generation(datasets: list[str], wps: list[int]) -> None:
             _run_gen_hist(in_mu, out_mu, wp)
 
 
-import os
-import sys
-import subprocess
 
 # already have MC_SAMPLES above, reused here:
 # MC_SAMPLES = { "sc": {...}, "sl": {...}, "mg": {...} }
