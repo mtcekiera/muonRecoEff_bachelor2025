@@ -102,6 +102,16 @@ def ratio_TGraphAsymmErrors(g_num, g_den, name="ratio", title="ratio", xmatch_to
 
     return out
 
+def ratio_2d(eff_data, eff_mc, name):
+    # if not eff_data or not eff_mc:
+    #     print('Efficency histograms empty!')
+    #     return None
+    eff_ratio = eff_data.Clone("eps_2d")
+    eff_ratio.SetTitle('eps_2d;p_{T},q#eta')
+    eff_ratio.Divide(eff_mc)
+    eff_ratio.SetName(name)
+    return eff_ratio
+
 def main():
     if len(sys.argv)!=4:
         print('usage: python genSF.py data_file mc_file out_file')
@@ -120,11 +130,17 @@ def main():
     mc_eff = mc_file.Get("total_eff")
     data_eff_qeta = data_file.Get("total_qeta_eff")
     mc_eff_qeta = mc_file.Get("total_qeta_eff")
+
+    data_eff_2d = data_file.Get("total_2d_eff")
+    mc_eff_2d = mc_file.Get("total_2d_eff")
     if not data_eff or not mc_eff:
         print('Data/MC pT eff. error')
         return
     if not data_eff_qeta or not mc_eff_qeta:
         print('Data/MC qEta eff. error')
+        return
+    if not data_eff_2d or not mc_eff_2d:
+        print('Data/MC 2d eff. error')
         return
     
     print(f'{data_fname} + {mc_fname} -> {out_fname}')
@@ -133,10 +149,13 @@ def main():
     # SF_qeta = ratio_of_TGraphs(data_eff_qeta, mc_eff_qeta, 'scale_factor_qEta')
     SF = ratio_TGraphAsymmErrors(data_eff, mc_eff, 'scale_factor_pT')
     SF_qeta = ratio_TGraphAsymmErrors(data_eff_qeta, mc_eff_qeta, 'scale_factor_qEta')
+    SF_2d = ratio_2d(data_eff_2d, mc_eff_2d, 'scale_factor_2d')
+
 
     out_file = ROOT.TFile(out_fname, "RECREATE")
     SF.Write()
     SF_qeta.Write()
+    SF_2d.Write()
     out_file.Close()
 
     data_file.Close()

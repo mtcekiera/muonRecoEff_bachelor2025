@@ -34,6 +34,42 @@ def _rebin_to(h, edges):
     nb = len(edges) - 1
     return h.Rebin(nb, h.GetName() + "__rebin", array('d', edges))
 
+def get_2d_efficiency(path, hname_pass, hname_total):
+    f = ROOT.TFile.Open(path)
+    if not f or f.IsZombie():
+        return None
+
+    h2_pass  = _find_hist_recursive(f, hname_pass)
+    h2_total = _find_hist_recursive(f, hname_total)
+    if not h2_pass or not h2_total:
+        f.Close()
+        return None
+    h2_pass.Sumw2();
+    h2_total.Sumw2();
+
+    h2_ratio = h2_pass.Clone("h2_ratio")
+    h2_ratio.SetDirectory(0)
+
+    h2_ratio.SetTitle("ratio;p_{T};q#eta")
+    h2_ratio.Divide(h2_total)
+
+    f.Close()
+
+    return h2_ratio 
+
+def combine_2d_total_eff(eff1, eff2):
+    if not eff1 or not eff2:
+        print('Efficency histograms empty!')
+        return None
+    eff1.Sumw2();
+    eff2.Sumw2();
+    eff_total = eff1.Clone("eps_2d")
+    eff_total.SetTitle('eps_2d;p_{T},q#eta')
+    eff_total.Multiply(eff2)
+    return eff_total
+
+
+
 def get_efficiency(path, hname_pass, hname_total, rebin=False, edges=None):
     f = ROOT.TFile.Open(path)
     if not f or f.IsZombie():
@@ -48,12 +84,9 @@ def get_efficiency(path, hname_pass, hname_total, rebin=False, edges=None):
     if rebin and edges:
         h_pass  = _rebin_to(h_pass,  edges)
         h_total = _rebin_to(h_total, edges)
-    # print("pass class:", type(h_pass), "total class:", type(h_total))
 
-    print("nbinsX:", h_pass.GetNbinsX(), h_total.GetNbinsX())
-    print("Entries:", h_pass.GetEntries(), h_total.GetEntries())
-    # print("xmin/xmax pass:",  h_pass.GetXaxis().GetXmin(), h_pass.GetXaxis().GetXmax())
-    # print("xmin/xmax total:", h_total.GetXaxis().GetXmin(), h_total.GetXaxis().GetXmax())
+    # print("nbinsX:", h_pass.GetNbinsX(), h_total.GetNbinsX())
+    # print("Entries:", h_pass.GetEntries(), h_total.GetEntries())
 
     debug_consistency(h_pass, h_total)
     if not ROOT.TEfficiency.CheckConsistency(h_pass, h_total):
@@ -88,12 +121,15 @@ def combine_total_eff(eff1, eff2):
 
 
 def main():
-    if(len(sys.argv)!=3):
-        print("Usage: python genEff.py wi/input_file output_file")
+    if(len(sys.argv)!=4):
+        print("Usage: python genEff.py wi/input_file output_file make_2d")
         return
     
     wp_in_fname = sys.argv[1]
     out_fname = sys.argv[2]
+    make_2d = not int(sys.argv[3])
+
+    print(f'MAKE 2D = {make_2d}')
 
     id_path = os.path.join("output/ID_MS", wp_in_fname)
     mu_path = os.path.join("output/mu_ID", wp_in_fname)
@@ -138,9 +174,25 @@ def main():
     total_eff_qeta.Write()
     # total_eff.Write()
 
+
+    if make_2d:
+        print("Making 2d efficiency plots")
+        id_2d_eff = get_2d_efficiency(id_path, 'eps_2d_pass', 'eps_2d_total')
+        mu_2d_eff = get_2d_efficiency(mu_path, 'eps_2d_pass', 'eps_2d_total')
+        total_2d_eff = combine_2d_total_eff(id_2d_eff, mu_2d_eff)
+
+        id_2d_eff.SetName("ID_MS_2d_eff")
+        mu_2d_eff.SetName("mu_ID_2d_eff")
+        total_2d_eff.SetName("total_2d_eff")
+
+
+        f_out.cd()
+        id_2d_eff.Write()
+        mu_2d_eff.Write()
+        total_2d_eff.Write()
+
+
     f_out.Close()
-
-
 
 if __name__ == "__main__":
     main()

@@ -2,6 +2,7 @@ import ROOT
 # import argparse
 import sys
 from dataclasses import dataclass
+from array import array
 
 @dataclass
 class Entry:
@@ -86,6 +87,20 @@ def main():
             # hist_eps_cutflow.GetXaxis().SetBinLabel(i+1, cuts[i])
         hist_dR_short = ROOT.TH1D('probe_dR_postsel_shortrange', 'dR on a shorter range', 100, 0, 0.01)
 
+        x_edges = array('d', [3.0, 3.5, 4.0, 4.5, 5.5, 7.5, 10.0, 12.5, 15.0, 50.0])
+        nx = len(x_edges) - 1
+
+        # uniform X binning
+        ny = 24          # pick how many bins you want on [-2.4, 2.4]
+        ymin, ymax = -2.4, 2.4
+
+        hist_eps_2d_total = ROOT.TH2D("eps_2d_total", "h2;pt;qeta",
+                    nx, x_edges,
+                    ny, ymin, ymax)
+
+        hist_eps_2d_pass = ROOT.TH2D("eps_2d_pass", "h2;pt;qeta",
+                    nx, x_edges,
+                    ny, ymin, ymax)
     else:
         histogram_params = [
             Entry("eps_pass", 100, 0, 50),
@@ -158,6 +173,18 @@ def main():
             for val_pair_pt_mid in vals_pair_pt_mid:
                 for val_pair_aco_mid in vals_pair_aco_mid:
                     aco_v_probe_pt_midsel.Fill(val_pair_pt_mid, val_pair_aco_mid, weight)
+            
+            vals_pt_pass = getattr(event, "eps_pass")
+            vals_qeta_pass = getattr(event, "eps_qEta_pass")
+            for val_pt in vals_pt_pass:
+                for val_qeta in vals_qeta_pass:
+                    hist_eps_2d_pass.Fill(val_pt, val_qeta)
+
+            vals_pt_total = getattr(event, "eps_total")
+            vals_qeta_total = getattr(event, "eps_qEta_total")
+            for val_pt in vals_pt_total:
+                for val_qeta in vals_qeta_total:
+                    hist_eps_2d_total.Fill(val_pt, val_qeta)
         
 
     print(f"\rProgress: {total_events//1000}k / {total_events//1000}k - 100%", end="", flush=True)
@@ -169,6 +196,8 @@ def main():
     for h in histograms.values():
         h.Write()
     if save_all:
+        hist_eps_2d_pass.Write()
+        hist_eps_2d_total.Write()
         hist_dR_short.Write()
         # hist_eps_cutflow.Write()
         dR_v_probe_pt_presel.Write()

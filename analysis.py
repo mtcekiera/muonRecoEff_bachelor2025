@@ -260,14 +260,16 @@ def do_generation(datasets: list[str], wps: list[int]) -> None:
 # already have MC_SAMPLES above, reused here:
 # MC_SAMPLES = { "sc": {...}, "sl": {...}, "mg": {...} }
 
-def _run_gen_eff(input_path: str, output_path: str) -> None:
+def _run_gen_eff(input_path: str, output_path: str, wp:int) -> None:
     """Call: python genEff.py in out."""
+    wp_str = str(wp)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     cmd = [
         sys.executable,
         "genEff.py",
         input_path,
         output_path,
+        wp_str
     ]
     print(" ".join(cmd))
     subprocess.run(cmd, check=True)
@@ -318,7 +320,7 @@ def do_efficiency(datasets: list[str], wps: list[int]) -> None:
         if "data" in datasets:
             in_data  = f"w{wp}/hist_data23.root"
             out_data = f"output/eff/w{wp}/eff_data23.root"
-            _run_gen_eff(in_data, out_data)
+            _run_gen_eff(in_data, out_data, wp)
 
         # MC samples (SuperChic / StarLight / MadGraph)
         for ds in ordered_mc:
@@ -328,7 +330,7 @@ def do_efficiency(datasets: list[str], wps: list[int]) -> None:
             tag = MC_SAMPLES[ds]["tag"]   # mc_sc / mc_sl / mc_mg
             in_mc  = f"w{wp}/hist_{tag}.root"
             out_mc = f"output/eff/w{wp}/eff_{tag}.root"   # eff_mc_sc.root etc.
-            _run_gen_eff(in_mc, out_mc)
+            _run_gen_eff(in_mc, out_mc, wp)
 def do_scale_factors(datasets: list[str], wps: list[int]) -> None:
     """
     Calculate scale factors from efficiency files.

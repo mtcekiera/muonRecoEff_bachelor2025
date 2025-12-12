@@ -12,41 +12,58 @@ EFF_MC_FNAME = "output/eff/w0/eff_mc_sc.root"
 
 
 _H2D = [
-    {
-    'in_fname': IDMS_DATA_FNAME,
-    'h2_name': "aco_v_probe_pt_presel",
-    'x_label':"#it{p}_{#it{T}}^{ID,exMS}",
-    'y_label':"#it{a}_{#it{#phi}}^{ID,exMS}",
-    'x_cuts': [2],
-    'y_cuts': [0.02],
-    'pdf_name':"paper/idms/aco_v_pairPt.pdf"},
+    # {
+    # 'in_fname': IDMS_DATA_FNAME,
+    # 'h2_name': "aco_v_probe_pt_presel",
+    # 'x_label':"#it{p}_{#it{T}}^{ID,exMS}",
+    # 'y_label':"#it{a}_{#it{#phi}}^{ID,exMS}",
+    # 'x_cuts': [2],
+    # 'y_cuts': [0.02],
+    # 'logz':     True,
+    # 'pdf_name':"paper/idms/aco_v_pairPt.pdf"},
+
+    # {
+    # 'in_fname': MUID_DATA_FNAME,
+    # 'h2_name': "aco_v_probe_pt_presel",
+    # 'x_label':"#it{p}_{#it{T}}^{#it{#mu},ID}",
+    # 'y_label':"#it{a}_{#it{#phi}}^{#it{#mu},ID}",
+    # 'x_cuts': [2],
+    # 'y_cuts': [0.02],
+    # 'logz':     True,
+    # 'pdf_name':"paper/muid/aco_v_pairPt.pdf"
+    # },
+
+    # {
+    # 'in_fname': IDMS_DATA_FNAME,
+    # 'h2_name': "dR_v_probe_pt_presel",
+    # 'x_label': "#it{p}_{#it{T}}^{exMS}",
+    # 'y_label': "#Delta#it{R}^{exMS,ID}",
+    # 'y_cuts': [0.1],
+    # 'logz':     True,
+    # 'pdf_name':"paper/idms/dr_v_probePt.pdf"
+    # },
+
+    # {
+    # 'in_fname': MUID_DATA_FNAME,
+    # 'h2_name': "dR_v_probe_pt_presel",
+    # 'x_label': "#it{p}_{#it{T}}^{ID}",
+    # 'y_label': "#Delta#it{R}^{#it{#mu},ID}",
+    # 'y_cuts': [0.01],
+    # 'logz':     True,
+    # 'pdf_name':"paper/muid/dr_v_probePt.pdf"
+    # },
 
     {
-    'in_fname': MUID_DATA_FNAME,
-    'h2_name': "aco_v_probe_pt_presel",
-    'x_label':"#it{p}_{#it{T}}^{#it{#mu},ID}",
-    'y_label':"#it{a}_{#it{#phi}}^{#it{#mu},ID}",
-    'x_cuts': [2],
-    'y_cuts': [0.02],
-    'pdf_name':"paper/muid/aco_v_pairPt.pdf"
-    },
-
-    {
-    'in_fname': IDMS_DATA_FNAME,
-    'h2_name': "dR_v_probe_pt_presel",
-    'x_label': "#it{p}_{#it{T}}^{exMS}",
-    'y_label': "#Delta#it{R}^{exMS,ID}",
-    'y_cuts': [0.1],
-    'pdf_name':"paper/idms/dr_v_probePt.pdf"
-    },
-
-    {
-    'in_fname': MUID_DATA_FNAME,
-    'h2_name': "dR_v_probe_pt_presel",
+    'in_fname': "output/eff/w0/sf_sc.root",
+    'h2_name': "scale_factor_2d",
     'x_label': "#it{p}_{#it{T}}^{ID}",
-    'y_label': "#Delta#it{R}^{#it{#mu},ID}",
-    'y_cuts': [0.01],
-    'pdf_name':"paper/muid/dr_v_probePt.pdf"
+    'y_label': "q#eta",
+    'y_cuts': None,
+    'logx': True,
+    # 'logz': True,
+    'pdf_name':"paper/sf/sf_2d.pdf",
+    'text': True,
+    'tight_layout': True
     }
 ]
 
@@ -272,25 +289,25 @@ _EFF = [
 _SC_WP = [
     {
         'in_fname': 'sf_sc.root', 
-        'out_pdf':  'paper/sc/sf_sc_pt_wp.pdf', 
+        'out_pdf':  'paper/sf/sf_sc_pt_wp.pdf', 
         'pT':       True,
         'sum_unc':  False
     },
     {
         'in_fname': 'sf_sc.root', 
-        'out_pdf':  'paper/sc/sf_sc_pt_syst.pdf', 
+        'out_pdf':  'paper/sf/sf_sc_pt_syst.pdf', 
         'pT':       True,
         'sum_unc':  True
     },
     {
         'in_fname': 'sf_sc.root', 
-        'out_pdf':  'paper/sc/sf_sc_qeta_wp.pdf', 
+        'out_pdf':  'paper/sf/sf_sc_qeta_wp.pdf', 
         'pT':       False,
         'sum_unc':  False
     },
     {
         'in_fname': 'sf_sc.root', 
-        'out_pdf':  'paper/sc/sf_sc_qeta_syst.pdf', 
+        'out_pdf':  'paper/sf/sf_sc_qeta_syst.pdf', 
         'pT':       False,
         'sum_unc':  True
     }
@@ -352,12 +369,12 @@ _SC_WP_COMPARISON = [
 
 for kwargs in _H2D:
     pf.plot_2d_histogram(**kwargs)
-for kwargs_idms, kwargs_muid in zip(IDMS_H1D, MUID_H1D):
-    pf.plot_1d_histogram(**kwargs_idms)
-    pf.plot_1d_histogram(**kwargs_muid)
-for kwargs in _EFF:
-    pf.plot_efficiency(**kwargs)
-for kwargs in _SC_WP:
-    pf.plot_scale_factor(**kwargs)
-for kwargs in _SC_WP_COMPARISON:
-    pf.plot_scale_factor(**kwargs)
+# for kwargs_idms, kwargs_muid in zip(IDMS_H1D, MUID_H1D):
+#     pf.plot_1d_histogram(**kwargs_idms)
+#     pf.plot_1d_histogram(**kwargs_muid)
+# for kwargs in _EFF:
+#     pf.plot_efficiency(**kwargs)
+# for kwargs in _SC_WP:
+#     pf.plot_scale_factor(**kwargs)
+# for kwargs in _SC_WP_COMPARISON:
+#     pf.plot_scale_factor(**kwargs)

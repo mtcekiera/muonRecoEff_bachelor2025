@@ -63,7 +63,10 @@ def draw_2d_hist(
     canvas_name="c2d",
     canvas_size=(800, 600),
     logz=False,
-    text_ndc_pos=(0.15, 0.93)
+    logx=False,
+    text_ndc_pos=(0.15, 0.93),
+    text = False,
+    tight_layout = False
 ):
     c = ROOT.TCanvas(canvas_name, canvas_name, canvas_size[0], canvas_size[1])
 
@@ -86,8 +89,29 @@ def draw_2d_hist(
     h2.GetXaxis().SetTitleSize(0.045)
     h2.GetYaxis().SetTitleSize(0.045)
     h2.GetZaxis().SetTitleSize(0.045)
-
-    h2.Draw("COLZ")
+    drawopt = "COLZ"
+    if text:
+        ROOT.gStyle.SetPaintTextFormat('4.2f')
+        drawopt = "COLZ TEXT"
+        h2.GetXaxis().SetTickLength(0.0)
+        h2.GetYaxis().SetTickLength(0.0)
+    c.SetLogx(logx)
+    h2.Draw(drawopt)
+    if logx:
+        h2.GetXaxis().SetMoreLogLabels(True)
+        h2.GetXaxis().SetNoExponent(True)
+        h2.GetXaxis().SetRangeUser(3, 50)
+        # pad2.SetTicks(1, 1)
+    
+    if tight_layout:
+        min, max = h2.GetMinimum(), h2.GetMaximum()
+        h2.SetMinimum(min-0.02)
+        # h2.SetMaximum(max)
+        # n_cont = int(100*(max-min) + 1+1)
+        # ROOT.gStyle.SetPalette(ROOT.kDarkBodyRadiator)
+        ROOT.gStyle.SetNumberContours(255)
+        ROOT.gROOT.ForceStyle()  
+        h2.SetContour(255)
 
     if title_text:
         latex = ROOT.TLatex()
@@ -104,10 +128,14 @@ def plot_2d_histogram(
         h2_name,
         x_label = "",
         y_label = "",
-        logz = True,
+        logz = False,
+        logx = False,
         x_cuts = None,
         y_cuts = None,
+        text = False,
+        tight_layout = False,
         pdf_name
+
 ):
     f = ROOT.TFile(in_fname)
     h2 = f.Get(h2_name)
@@ -115,7 +143,10 @@ def plot_2d_histogram(
         h2 = h2,
         x_label=x_label,
         y_label=y_label,
-        logz=logz
+        logz=logz,
+        logx=logx,
+        text=text,
+        tight_layout=tight_layout
     )
 
     lines = add_cut_lines(
@@ -829,3 +860,5 @@ def plot_scale_factor(*,
         info_text()
 
     c.Modified(); c.Update(); c.Print(out_pdf)
+
+
