@@ -38,6 +38,9 @@ G2TauTree::G2TauTree(std::string input_fname, std::string out_fname, bool TPType
     TPpair_pt_threshold = 2;
     if(wp==6) TPpair_pt_threshold = 1;
 
+    is_LooseMuon = false;
+    if(wp==7) is_LooseMuon = true;
+
     switch(wp){
         default:
             aco_threshold = 0.02;
@@ -111,6 +114,7 @@ void G2TauTree::Loop()
     
     std::vector<Float_t> *probe_dR_presel = new std::vector<Float_t>();
     std::vector<Float_t> *probe_dR_midsel = new std::vector<Float_t>();
+    std::vector<Float_t> *probe_dR_postsel = new std::vector<Float_t>();
 
 
     std::vector<Float_t> *eps_pass = new std::vector<Float_t>(); 
@@ -121,10 +125,14 @@ void G2TauTree::Loop()
     std::vector<Float_t> *TPpair_pt_presel = new std::vector<Float_t>();
     std::vector<Float_t> *TPpair_pt_midsel = new std::vector<Float_t>();
     std::vector<Float_t> *TPpair_pt_postsel = new std::vector<Float_t>();
+    
     std::vector<Float_t> *TPpair_M_presel = new std::vector<Float_t>();
     std::vector<Float_t> *TPpair_M_postsel = new std::vector<Float_t>();
+    
     std::vector<Float_t> *TPpair_aco_presel = new std::vector<Float_t>();
     std::vector<Float_t> *TPpair_aco_midsel = new std::vector<Float_t>();
+    std::vector<Float_t> *TPpair_aco_postsel = new std::vector<Float_t>();
+
     std::vector<Float_t> *TPpair_dR_presel = new std::vector<Float_t>();
     std::vector<Float_t> *TPpair_dR_postsel = new std::vector<Float_t>();
 
@@ -159,6 +167,7 @@ void G2TauTree::Loop()
         
         output_tree->Branch("probe_dR_presel", &probe_dR_presel);
         output_tree->Branch("probe_dR_midsel", &probe_dR_midsel);
+        output_tree->Branch("probe_dR_postsel", &probe_dR_postsel);
 
 
         output_tree->Branch("TPpair_pt_presel", &TPpair_pt_presel);
@@ -173,6 +182,7 @@ void G2TauTree::Loop()
 
         output_tree->Branch("TPpair_aco_presel", &TPpair_aco_presel);
         output_tree->Branch("TPpair_aco_midsel", &TPpair_aco_midsel);
+        output_tree->Branch("TPpair_aco_postsel", &TPpair_aco_postsel);
     }
 
     output_tree->Branch("weight", &weight);
@@ -192,9 +202,10 @@ void G2TauTree::Loop()
         Long64_t ientry = LoadTree(jentry);
         if (ientry < 0) break;
         nb = fChain->GetEntry(jentry);   nbytes += nb;
-
         if(jentry%checkpoint==0){
-            std::cout<<"\ranalysing entry no. "<<jentry<<" / "<<nentries<<std::flush;
+            float perc = round(100*float(jentry)/float(nentries));
+
+            std::cout<<"\ranalysing entry no. "<<jentry/1000<<"k / "<<nentries/1000<<"k - "<<perc<<"%"<<std::flush;
         }
 
         ///// CLEARING VECTORS
@@ -225,10 +236,12 @@ void G2TauTree::Loop()
 
         probe_dR_presel->clear();
         probe_dR_midsel->clear();
+        probe_dR_postsel->clear();
 
 
         TPpair_aco_presel->clear();
         TPpair_aco_midsel->clear();
+        TPpair_aco_postsel->clear();
 
         TPpair_pt_presel->clear();
         TPpair_pt_midsel->clear();
@@ -289,7 +302,8 @@ void G2TauTree::Loop()
                 if(!(muon_is_Tight->at(tag))) continue;
             }
             else{
-                if(!(muon_is_LowPt->at(tag))) continue; // is_LowPt should have the Loose working point
+                if(!(muon_is_LowPt->at(tag))) continue;
+                // is_LowPt should have the Loose working point
             }
             if(!(abs(muon_eta->at(tag))<2.4)) continue;
             if(!(muon_pt->at(tag)>3)) continue;
@@ -354,8 +368,10 @@ void G2TauTree::Loop()
                     // dR - probe pt corr. plot
                     probe_pt_presel->push_back(MSmuon_pt->at(probe));
                     probe_dR_presel->push_back(probe_dR);
+                    // if(!(track_is_matched_to_muon)) continue;
+                    if(is_LooseMuon){   if(!(track_is_LooseMuon->at(id)))   continue;   }
+                    else{               if(!(track_is_matched_to_muon))     continue;   }
 
-                    if(!(track_is_LooseMuon->at(id))) continue; 
                     if(check_d0){if(!(abs(track_d0->at(id))<2)) continue;}
 
                     // dR - probe pt corr. plot
@@ -374,6 +390,8 @@ void G2TauTree::Loop()
                     probe_d0_postsel->push_back(MSmuon_d0->at(probe));
                     TPpair_dR_postsel->push_back(tp_dR);
                     TPpair_pt_postsel->push_back(v_pair.Pt());
+                    probe_dR_postsel->push_back(probe_dR);
+                    TPpair_aco_postsel->push_back(aco);
 
                     eps_pass->push_back(MSmuon_pt->at(probe));
                     eps_qEta_pass->push_back((MSmuon_eta->at(probe))*(MSmuon_charge->at(probe)));
@@ -431,12 +449,13 @@ void G2TauTree::Loop()
                     probe_pt_presel->push_back(track_pt->at(probe));
                     probe_dR_presel->push_back(probe_dR);
 
-                    if(wpTight){
-                        if(!(muon_is_Tight->at(m_LPt))) continue;
-                    }
-                    else{
-                        if(!(muon_is_LowPt->at(m_LPt))) continue; // nie is_loose?
-                    }
+                    // if(wpTight){
+                    //     if(!(muon_is_Tight->at(m_LPt))) continue;
+                    // }
+                    // else{
+                    //     if(!(muon_is_LowPt->at(m_LPt))) continue; // nie is_loose?
+                    // }
+                    if(!(muon_is_LowPt->at(m_LPt))) continue;
 
                     // dR - probe pt corr.
                     probe_pt_midsel->push_back(track_pt->at(probe));
@@ -456,6 +475,8 @@ void G2TauTree::Loop()
                     TPpair_dR_postsel->push_back(tp_dR);
                     probe_d0_postsel->push_back(track_d0->at(probe));
                     TPpair_pt_postsel->push_back(v_pair.Pt());
+                    probe_dR_postsel->push_back(probe_dR);
+                    TPpair_aco_postsel->push_back(aco);
 
                     eps_pass->push_back(track_pt->at(probe));
                     eps_qEta_pass->push_back((track_eta->at(probe))*(track_charge->at(probe)));
@@ -475,7 +496,8 @@ void G2TauTree::Loop()
 
     }
     ////////// END OF LOOP //////////////
-    std::cout<<"\ranalysing entry no. "<<nentries<<" / "<<nentries<<std::flush;
+
+    std::cout<<"\ranalysing entry no. "<<nentries/1000<<"k / "<<nentries/1000<<"k - "<<100<<"%"<<std::flush;
     std::cout<<std::endl;
     std::cout<<"[ DONE ]"<<std::endl;
 
@@ -494,12 +516,16 @@ void G2TauTree::Loop()
     delete TPpair_pt_presel;
     delete TPpair_pt_midsel;
     delete TPpair_pt_postsel;
+    
     delete TPpair_M_presel;
     delete TPpair_M_postsel;
+    
     delete TPpair_dR_presel;
     delete TPpair_dR_postsel;
+
     delete TPpair_aco_presel;
     delete TPpair_aco_midsel;
+    delete TPpair_aco_postsel;
 
     delete tag_pt;
     delete tag_eta;
@@ -525,6 +551,7 @@ void G2TauTree::Loop()
 
     delete probe_dR_presel;
     delete probe_dR_midsel;
+    delete probe_dR_postsel;
 
 
     output_tree->Write();

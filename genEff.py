@@ -107,8 +107,8 @@ def main():
         return
     
     print(f"Opening {mu_path}")
-    mu_eff_pt = get_efficiency(id_path, HNAME_PASS_PT, HNAME_TOTAL_PT, True, BIN_EDGES)
-    mu_eff_qeta = get_efficiency(id_path, HNAME_PASS_QETA, HNAME_TOTAL_QETA, False)
+    mu_eff_pt = get_efficiency(mu_path, HNAME_PASS_PT, HNAME_TOTAL_PT, True, BIN_EDGES)
+    mu_eff_qeta = get_efficiency(mu_path, HNAME_PASS_QETA, HNAME_TOTAL_QETA, False)
     if not mu_eff_pt or not mu_eff_qeta:
         print("mu_ID efficiency error")
         return

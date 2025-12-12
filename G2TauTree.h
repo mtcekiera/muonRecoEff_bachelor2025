@@ -46,7 +46,7 @@ public :
    Bool_t check_zdc;
    Bool_t check_d0;
    Double_t TPpair_pt_threshold;
-
+   Bool_t is_LooseMuon;
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
 

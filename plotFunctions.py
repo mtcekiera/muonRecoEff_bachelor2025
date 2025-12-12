@@ -1,6 +1,8 @@
 import ROOT
 import sys
 from array import array
+import os
+import math
 
 ### CONFIG ###
 
@@ -342,7 +344,16 @@ def plot_1d_histogram(
     f_mc.Close()
     print(f"Saved: {output_pdf}")
 
+
+
 # ------------- efficiency plots -------------
+
+def info_text(*, xpos = 0.2, ypos = 0.8):
+        txt = ROOT.TLatex()
+        txt.SetNDC(True)        # use normalized (0..1) coordinates
+        txt.SetTextSize(0.04)
+        txt.DrawLatex(xpos, ypos, "#splitline{#sqrt{s_{NN}} = 5.36 TeV}{-2.4 < #eta < 2.4}")
+
 
 def ratio_of_TEff(e1, e2):
     g = ROOT.TGraphAsymmErrors(); ROOT.SetOwnership(g, False)
@@ -394,7 +405,7 @@ def style_obj(o, color, marker):
     o.SetLineWidth(2)
 
 
-def draw_one_eff(canvas, data_obj, mc_obj, title, xlabel, ylabel, logx=False):
+def draw_one_eff(canvas, data_obj, mc_obj, title, xlabel, ylabel, ylim, logx=False):
     canvas.Clear(); canvas.Divide(1, 2)
     is_eff = data_obj.InheritsFrom("TEfficiency")
     xmin, xmax = -2.4, 2.4
@@ -406,8 +417,8 @@ def draw_one_eff(canvas, data_obj, mc_obj, title, xlabel, ylabel, logx=False):
     # pad1.SetGrid()
     if(logx):
         pad1.SetLogx()
-
-    frame_top = pad1.DrawFrame(xmin, 0.7, xmax, 1.05)
+    ymin, ymax = ylim
+    frame_top = pad1.DrawFrame(xmin, ymin, xmax, ymax)
     frame_top.SetTitle(f"{title};{xlabel};{ylabel}")
     frame_top.GetXaxis().SetLabelSize(0)
     frame_top.GetXaxis().SetTitleSize(0)
@@ -416,6 +427,7 @@ def draw_one_eff(canvas, data_obj, mc_obj, title, xlabel, ylabel, logx=False):
     style_obj(mc_obj,   ROOT.kRed + 1, 24)
     data_obj.Draw("P SAME")
     mc_obj.Draw("P SAME")
+    info_text(xpos = 0.2, ypos = 0.2)
 
     leg = ROOT.TLegend(0.60, 0.10, 0.88, 0.28)
     leg.SetBorderSize(0)
@@ -475,6 +487,7 @@ def plot_efficiency( *,
         title = '',
         xlabel = '',
         ylabel = '',
+        ylim = (0.7, 1.05)
 ):
     fD = ROOT.TFile.Open(data_fname)
     fM = ROOT.TFile.Open(mc_fname)
@@ -491,5 +504,328 @@ def plot_efficiency( *,
         return
     
     c = ROOT.TCanvas("c", "c", canvas_size[0], canvas_size[1])
-    draw_one_eff(c, data_eff, mc_eff, title, xlabel, ylabel, logx)
+    draw_one_eff(c, data_eff, mc_eff, title, xlabel, ylabel, ylim, logx)
     c.Print(output_pdf)
+
+# ----------- scale factors --------------
+
+
+
+BASE_DIR = "output/eff"
+# FOLDERS  = ["w0", "w7"]
+# OBJ_NAME = "scale_factor_pT"
+X_MATCH_TOL = 1e-9
+
+def get_graph(path, eff_name):
+    f = ROOT.TFile.Open(path)
+    if not f or f.IsZombie(): return None
+    g = f.Get(eff_name)
+    if not g or not g.InheritsFrom("TGraphAsymmErrors"):
+        f.Close(); return None
+    g2 = g.Clone()
+    if hasattr(g2, "SetDirectory"): g2.SetDirectory(0)
+    f.Close()
+    return g2
+
+def point(g, i):
+    x = array('d', [0.0]); y = array('d', [0.0])
+    g.GetPoint(i, x, y)
+    return x[0], y[0]
+
+def errs(g, i):
+    return (g.GetErrorXlow(i), g.GetErrorXhigh(i),
+            g.GetErrorYlow(i), g.GetErrorYhigh(i))
+
+def find_by_x(g, xref, tol=X_MATCH_TOL):
+    for j in range(g.GetN()):
+        xj, _ = point(g, j)
+        if abs(xj - xref) <= tol * max(1.0, abs(xj), abs(xref)):
+            return j
+    return -1
+
+def build_syst_graph(nom, var, name):
+    out = ROOT.TGraphAsymmErrors(); ROOT.SetOwnership(out, False)
+    out.SetName(name)
+    for i in range(nom.GetN()):
+        x0, y0 = point(nom, i)
+        exl0, exh0, _, _ = errs(nom, i)
+        j = find_by_x(var, x0)
+        if j < 0: continue
+        _, y1 = point(var, j)
+        dy = abs(y0 - y1)/y0 if y0>0 else 0
+        p = out.GetN()
+        out.SetPoint(p, x0, y0)
+        out.SetPointError(p, max(exl0, 0.0), max(exh0, 0.0), dy, dy)
+    return out
+
+def build_quadrature_band(nom, syst_graphs, name="syst_total_quad"):
+    """Total systematic band: sqrt(sum_i (|w0-wi|)^2) per bin. Uses nominal x-errors."""
+    out = ROOT.TGraphAsymmErrors(); ROOT.SetOwnership(out, False)
+    out.SetName(name)
+    for i in range(nom.GetN()):
+        x0, y0 = point(nom, i)
+        exl0, exh0, _, _ = errs(nom, i)
+        sumsq = 0.0
+        for gs in syst_graphs:
+            j = find_by_x(gs, x0)
+            if j < 0: continue
+            _, _, eyl, eyh = errs(gs, j)
+            e = max(eyl, eyh)  # they are equal by construction
+            sumsq += e*e
+        if sumsq <= 0.0:
+            continue
+        e_tot = math.sqrt(sumsq)
+        p = out.GetN()
+        out.SetPoint(p, x0, y0)
+        out.SetPointError(p, exl0, exh0, e_tot, e_tot)
+    return out
+
+def style_syst(graphs):
+    styles = [
+        {"color": ROOT.kBlack,      "line": 2,  "linestyle": 1},
+        {"color": ROOT.kAzure+1,    "line": 2,  "linestyle": 2},
+        {"color": ROOT.kOrange+7,   "line": 2,  "linestyle": 3},
+        {"color": ROOT.kGreen+2,    "line": 2,  "linestyle": 4},
+        {"color": ROOT.kMagenta+1,  "line": 2,  "linestyle": 5},
+        {"color": ROOT.kRed+1,      "line": 2,  "linestyle": 6},
+        {"color": ROOT.kBlue+1,     "line": 2,  "linestyle": 7},
+    ]
+    for i, g in enumerate(graphs):
+        st = styles[i % len(styles)]
+        g.SetLineColor(st["color"])
+        g.SetLineWidth(st["line"])
+        g.SetLineStyle(st["linestyle"])
+
+        g.SetMarkerStyle(1)
+
+def style_total_band(g):
+    g.SetFillColorAlpha(ROOT.kGray+1, 0.35)
+    g.SetLineColor(ROOT.kGray+2)
+    g.SetLineWidth(2)
+    g.SetFillStyle(1001)
+    g.SetMarkerStyle(1)
+
+def make_legend(graphs, labels):
+    leg = ROOT.TLegend(0.58, 0.15, 0.88, 0.37)
+    leg.SetBorderSize(0)
+    # leg.AddEntry(graphs[0], "Nominal (w0)", "pe")
+    leg.AddEntry(graphs[0], labels[0], "lep")
+
+    for g, lab in zip(graphs[1:], labels[1:]):
+        leg.AddEntry(g, lab)
+    return leg
+
+def make_legend_total(nom, total_band):
+    leg = ROOT.TLegend(0.58, 0.15, 0.88, 0.3)
+    leg.SetBorderSize(0)
+    leg.AddEntry(nom, "Nominal (w0)", "lep")
+    leg.AddEntry(total_band, "Total syst. (quadrature)", "f")
+    return leg
+
+def graph_to_hist_step(g, name, logx=False):
+    """Build a TH1D with variable bins from a TGraphAsymmErrors.
+       Uses x-exlow and x+exhigh as bin edges; sets bin contents to y."""
+    n = g.GetN()
+    if n == 0:
+        print("G empty")
+        return None
+
+    bins = []
+    for i in range(n):
+        x, y = point(g, i)
+        exl, exh, _, _ = errs(g, i)
+        left  = x - exl
+        right = x + exh
+
+        if right <= left:
+            # Fallback: estimate edges from neighbors
+            if i == 0 and n > 1:
+                x_next, _ = point(g, i+1)
+                right = 0.5 * (x + x_next)
+                left  = x - (right - x)
+            elif i == n-1 and n > 1:
+                x_prev, _ = point(g, i-1)
+                left  = 0.5 * (x_prev + x)
+                right = x + (x - left)
+            elif 0 < i < n-1:
+                x_prev, _ = point(g, i-1)
+                x_next, _ = point(g, i+1)
+                left  = 0.5 * (x_prev + x)
+                right = 0.5 * (x + x_next)
+
+        # Only clamp to >0 if we are in log-x mode
+        if logx:
+            if left <= 0:
+                left = 1e-12
+            if right <= left:
+                right = left * (1.0 + 1e-9)
+
+        bins.append((left, right, y))
+
+    # Build edges
+    edges = [bins[0][0]]
+    for _, r, _ in bins:
+        edges.append(r)
+
+    # Ensure strictly increasing; only enforce positivity in logx
+    for k in range(1, len(edges)):
+        if edges[k] <= edges[k-1]:
+            edges[k] = edges[k-1] * (1.0 + 1e-9)
+        if logx and edges[k] <= 0:
+            edges[k] = 1e-12
+
+    from array import array
+    h = ROOT.TH1D(name, "", len(edges) - 1, array('d', edges))
+    h.SetDirectory(0)
+    for i, (_, _, val) in enumerate(bins, start=1):
+        h.SetBinContent(i, val)
+        h.SetBinError(i, 0.0)
+    return h
+
+
+def style_hist_like_graph(h, g_src):
+    """Carry over line/marker styles from a graph to the histogram."""
+    if h is None:
+        print("Histogram is invalid")
+        return
+    if g_src is None:
+        print("Graph is invalid")
+        return
+    h.SetLineColor(g_src.GetLineColor())
+    h.SetLineStyle(g_src.GetLineStyle())
+    h.SetLineWidth(g_src.GetLineWidth())
+    h.SetMarkerStyle(1)
+    h.SetFillStyle(0)
+
+FOLDERS  = ["w0", "w1", "w2", "w3", "w4", "w5", "w6"]
+LABELS   = ["Nominal", "Tight tag", "Tight #it{A}_{#phi}<0.01", "Loose #it{A}_{#phi}<0.03", "ZDC #it{E}<1TeV", "No #it{d}_{0} cut", "#it{p}^{tag}_{#it{T}}<1GeV"]
+
+
+def plot_scale_factor(*,
+        in_fname,
+        out_pdf,
+        # eff_name,
+        folders = FOLDERS,
+        labels = LABELS,
+        pT = True,
+        sum_unc = False
+):
+
+    ROOT.gROOT.SetBatch(True)
+    ROOT.gStyle.SetEndErrorSize(0)
+    ROOT.gStyle.SetHatchesLineWidth(1)
+    ROOT.gStyle.SetHatchesSpacing(1.2)
+
+    ymin, ymax = 0.75, 1.1
+
+    if pT:
+        eff_name = 'scale_factor_pT'
+        xmin, xmax = 3.0, 50.0
+        logx = True
+
+    else:
+        eff_name = 'scale_factor_qEta'
+        xmin, xmax = -2.4, 2.4
+        logx = False
+        
+    graphs = []
+    missing = []
+    for w in folders:
+        path = os.path.join(BASE_DIR, w, in_fname)
+        g = get_graph(path, eff_name)
+        if not g: missing.append(path)
+        graphs.append(g)
+
+    if graphs[0] is None:
+        print("Error: nominal graph missing:", os.path.join(BASE_DIR, folders[0], in_fname))
+        if missing:
+            print("Also missing:", *missing[1:], sep="\n  ")
+        sys.exit(2)
+    if any(g is None for g in graphs[1:]):
+        print("Warning: missing variations:")
+        for i, g in enumerate(graphs):
+            if i == 0: continue
+            if g is None:
+                print(f"  {BASE_DIR}/{folders[i]}/{in_fname}")
+                return
+
+    g_nom = graphs[0]
+    # Page 1: individual systematics
+
+    # labels = 
+    style_syst(graphs)
+    
+
+   
+
+    ROOT.gStyle.SetOptStat(0)
+    c = ROOT.TCanvas("c", "c", 850, 720)
+
+
+    c.SetLogx(logx)
+    if pT:
+        frame1 = ROOT.TH1F("frame1", ";#it{p}_{#it{T}} [GeV];Scale factor", 1, xmin, xmax)
+    else:
+        frame1 = ROOT.TH1F("frame1", ";q#eta;Scale factor", 1, xmin, xmax)
+
+    if not sum_unc:
+        frame1.SetDirectory(0)
+        frame1.SetMinimum(ymin); frame1.SetMaximum(ymax)
+        frame1.Draw()
+        ROOT.gPad.Update()
+
+        # Convert variations (graphs[1:]) to step histos and draw
+        h_steps = []
+        for idx, g in enumerate(graphs[1:], start=1):
+            if not g:
+                h_steps.append(None)
+                continue
+            # pass logx flag here 👇
+            h = graph_to_hist_step(g, f"h_step_{idx}", logx=logx)
+            if h is None:
+                print("Histogram is invalid, possible empty graphs")
+                return
+            style_hist_like_graph(h, g)
+            h.Draw("HIST SAME")
+            h_steps.append(h)
+
+        g_nom.Draw("P E1 SAME")
+
+        ROOT.gPad.RedrawAxis()
+        leg1 = make_legend(graphs, labels)  # legend still refers to original graphs
+        leg1.Draw()
+
+        xaxis = frame1.GetXaxis()
+
+        xaxis.SetMoreLogLabels(True)
+        xaxis.SetNoExponent(True)
+        # frame1.SetTicks(1, 1)
+    else:
+
+        # Page 2: quadrature-summed systematic band
+        syst_graphs = []
+        for i in range(1, len(graphs)):
+            if graphs[i] is None: continue
+            gs = build_syst_graph(g_nom, graphs[i], f"syst_{folders[i]}")
+            syst_graphs.append(gs)
+        total_band = build_quadrature_band(g_nom, syst_graphs, "syst_total_quad")
+        style_total_band(total_band)
+
+        c.Clear(); c.SetLogx(logx)
+        frame2 = ROOT.TH1F("frame2", ";#it{p}_{#it{T}} [GeV];Scale factor", 1, xmin, xmax)
+        frame2.SetDirectory(0)
+        frame2.SetMinimum(ymin); frame2.SetMaximum(ymax)
+        frame2.Draw()
+        total_band.Draw("E2 SAME");# total_band.Draw("E1 SAME")
+        g_nom.Draw("P E1 SAME")
+        leg2 = make_legend_total(g_nom, total_band)
+        leg2.Draw()
+
+
+        xaxis = frame2.GetXaxis()
+ 
+        xaxis.SetMoreLogLabels(True)
+        xaxis.SetNoExponent(True)
+        info_text()
+
+    c.Modified(); c.Update(); c.Print(out_pdf)

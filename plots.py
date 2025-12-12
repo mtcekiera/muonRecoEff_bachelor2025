@@ -51,9 +51,36 @@ _H2D = [
 ]
 
 _H1D = [
+    {   
+        'h_name':       'tag_pt',
+        'output_pdf':   'tag_pt.pdf',
+        'xlabel-idms':  '#it{P}_{#it{T}}^{#mu}',
+        'xlabel-muid':  '#it{P}_{#it{T}}^{#mu}',
+        'ylabel':       'no. of tags',
+        'logy':         True,
+        'cut':          None
+    },
     {
-        'h_name':       'probe_eta',
-        'output_pdf':   'probe_eta.pdf',
+        'h_name':       'tag_phi',
+        'output_pdf':   'tag_phi.pdf',
+        'xlabel-idms':  '#it{#phi}^{#mu}',
+        'xlabel-muid':  '#it{#phi}^{#mu}',
+        'ylabel':       'no. of tags',
+        'logy':         False,
+        'cut':          None
+    },
+    {
+        'h_name':       'tag_eta',
+        'output_pdf':   'tag_eta.pdf',
+        'xlabel-idms':  '#eta^{#mu}',
+        'xlabel-muid':  '#eta^{#mu}',
+        'ylabel':       'no. of tags',
+        'logy':         False,
+        'cut':          None
+    },
+    {
+        'h_name':       'eps_qEta_pass',
+        'output_pdf':   'eps_qEta_pass.pdf',
         'xlabel-idms':  '#it{q#eta}^{exMS}',
         'xlabel-muid':  '#it{q#eta}^{ID}',
         'ylabel':       'no. of probes',
@@ -61,8 +88,8 @@ _H1D = [
         'cut':          None
     },
     {   
-        'h_name':       'probe_pt',
-        'output_pdf':   'probe_pt.pdf',
+        'h_name':       'probe_pt_postsel',
+        'output_pdf':   'probe_pt_postsel.pdf',
         'xlabel-idms':  '#it{P}_{#it{T}}^{exMS}',
         'xlabel-muid':  '#it{P}_{#it{T}}^{ID}',
         'ylabel':       'no. of probes',
@@ -70,8 +97,8 @@ _H1D = [
         'cut':          None
     },
     {
-        'h_name':       'probe_phi',
-        'output_pdf':   'probe_phi.pdf',
+        'h_name':       'probe_phi_postsel',
+        'output_pdf':   'probe_phi_postsel.pdf',
         'xlabel-idms':  '#it{#phi}^{exMS}',
         'xlabel-muid':  '#it{#phi}^{ID}',
         'ylabel':       'no. of probes',
@@ -79,8 +106,8 @@ _H1D = [
         'cut':          None
     },
     {
-        'h_name':       'probe_eta',
-        'output_pdf':   'probe_eta.pdf',
+        'h_name':       'probe_eta_postsel',
+        'output_pdf':   'probe_eta_postsel.pdf',
         'xlabel-idms':  '#eta^{exMS}',
         'xlabel-muid':  '#eta^{ID}',
         'ylabel':       'no. of probes',
@@ -88,17 +115,8 @@ _H1D = [
         'cut':          None
     },
     {
-        'h_name':       'probe_pt_midsel',
-        'output_pdf':   'probe_pt_midsel.pdf',
-        'xlabel-idms':  '#it{p}_{#it{T}}^{exMS} [GeV]',
-        'xlabel-muid':  '#it{p}_{#it{T}}^{ID} [GeV]',
-        'ylabel':       'no. of probes',
-        'logy':         True,
-        'cut':          None
-    },
-    {
-        'h_name':       'probe_d0_presel',
-        'output_pdf':   'probe_d0_presel.pdf',
+        'h_name':       'probe_d0_postsel',
+        'output_pdf':   'probe_d0_postsel.pdf',
         'xlabel-idms':  '#it{d}_{0}^{exMS} [mm]',
         'xlabel-muid':  '#it{d}_{0}^{ID} [mm]',
         'ylabel':       'no. of probes',
@@ -106,40 +124,39 @@ _H1D = [
         'cut':          None
     },
     {
-        'h_name':       'probe_dR_presel',
-        'output_pdf':   'probe_dR_presel.pdf',
-        'xlabel-idms':  '#it{dR}^{exMS}',
-        'xlabel-muid':  '#it{dR}^{ID}',
+        'h_name':       'probe_dR_postsel',
+        'output_pdf':   'probe_dR_postsel.pdf',
+        'xlabel-idms':  '#Delta#it{R}^{exMS-ID}',
+        'xlabel-muid':  '#Delta#it{R}^{ID-#mu}',
         'ylabel':       'no. of probes',
         'logy':         True,
         'cut':          None
     },
     {
-        'h_name':       'TPpair_aco_presel',
-        'output_pdf':   'TPpair_aco_presel.pdf',
+        # 'h_name':       'probe_dR_postsel_shortrange',
+        'h_name':       'dR_probe_postsel_shortrange',
+        'output_pdf':   'probe_dR_postsel_shortrange.pdf',
+        'xlabel-idms':  '#Delta#it{R}^{exMS-ID}',
+        'xlabel-muid':  '#Delta#it{R}^{ID-#mu}',
+        'ylabel':       'no. of probes',
+        'logy':         True,
+        'cut':          None
+    },
+    {
+        'h_name':       'TPpair_aco_postsel',
+        'output_pdf':   'TPpair_aco_postsel.pdf',
         'xlabel-idms':  '#it{A}_{#it{#phi}}^{#mu-exMS}',
         'xlabel-muid':  '#it{A}_{#it{#phi}}^{#mu-ID}',
         'ylabel':       'no. of tag-probe pairs',
         'logy':         True,
-        'cut':          0.02
     },
     {
-        'h_name':       'TPpair_aco_midsel',
-        'output_pdf':   'TPpair_aco_midsel.pdf',
+        'h_name':       'TPpair_aco_postsel',
+        'output_pdf':   'TPpair_aco_postsel.pdf',
         'xlabel-idms':  '#it{A}_{#it{#phi}}^{#mu-exMS}',
         'xlabel-muid':  '#it{A}_{#it{#phi}}^{#mu-ID}',
         'ylabel':       'no. of tag-probe pairs',
         'logy':         True,
-        'cut':          0.02
-    },
-    {
-        'h_name':       'TPpair_pt_presel',
-        'output_pdf':   'TPpair_pt_presel.pdf',
-        'xlabel-idms':  '#it{p}_{#it{T}}^{#mu-exMS}',
-        'xlabel-muid':  '#it{p}_{#it{T}}^{#mu-ID}',
-        'ylabel':       'no. of tag-probe pairs',
-        'logy':         True,
-        'cut':          2
     },
     {
         'h_name':       'TPpair_pt_postsel',
@@ -148,16 +165,14 @@ _H1D = [
         'xlabel-muid':  '#it{p}_{#it{T}}^{#mu-ID}',
         'ylabel':       'no. of tag-probe pairs',
         'logy':         True,
-        'cut':          2
     },
     {
-        'h_name':       'TPpair_M_presel',
-        'output_pdf':   'TPpair_M_presel.pdf',
-        'xlabel-idms':  '#it{M}_{inv.}^{#mu-exMS}',
-        'xlabel-muid':  '#it{M}_{inv.}^{#mu-ID}',
+        'h_name':       'TPpair_pt_postsel',
+        'output_pdf':   'TPpair_pt_postsel.pdf',
+        'xlabel-idms':  '#it{p}_{#it{T}}^{#mu-exMS}',
+        'xlabel-muid':  '#it{p}_{#it{T}}^{#mu-ID}',
         'ylabel':       'no. of tag-probe pairs',
         'logy':         True,
-        'cut':          None
     },
     {
         'h_name':       'TPpair_M_postsel',
@@ -199,6 +214,7 @@ _EFF = [
         'mc_fname':     EFF_MC_FNAME,
         'output_pdf':   'paper/eff/ID_MS_eff.pdf',
         'obj_name':     'ID_MS_eff',
+        'ylim':         (0.95, 1.05),
         'logx':         True,
         'xlabel':       '#it{p}_{#it{T}} [GeV]',
         'ylabel':       '#it{#varepsilon}(ID|MS)'
@@ -226,6 +242,7 @@ _EFF = [
         'mc_fname':     EFF_MC_FNAME,
         'output_pdf':   'paper/eff/ID_MS_qEta_eff.pdf',
         'obj_name':     'ID_MS_qeta_eff',
+        'ylim':         (0.95, 1.05),
         'logx':         False,
         'xlabel':       '#it{q#eta}',
         'ylabel':       '#it{#varepsilon}(ID|MS)'
@@ -250,10 +267,97 @@ _EFF = [
     }
 ]
 
-# for kwargs in _H2D:
-#     pf.plot_2d_histogram(**kwargs)
-# for kwargs_idms, kwargs_muid in zip(IDMS_H1D, MUID_H1D):
-#     pf.plot_1d_histogram(**kwargs_idms)
-#     pf.plot_1d_histogram(**kwargs_muid)
+# FOLDERS  = ["w0", "w1", "w2", "w3", "w4", "w5", "w6"]
+
+_SC_WP = [
+    {
+        'in_fname': 'sf_sc.root', 
+        'out_pdf':  'paper/sc/sf_sc_pt_wp.pdf', 
+        'pT':       True,
+        'sum_unc':  False
+    },
+    {
+        'in_fname': 'sf_sc.root', 
+        'out_pdf':  'paper/sc/sf_sc_pt_syst.pdf', 
+        'pT':       True,
+        'sum_unc':  True
+    },
+    {
+        'in_fname': 'sf_sc.root', 
+        'out_pdf':  'paper/sc/sf_sc_qeta_wp.pdf', 
+        'pT':       False,
+        'sum_unc':  False
+    },
+    {
+        'in_fname': 'sf_sc.root', 
+        'out_pdf':  'paper/sc/sf_sc_qeta_syst.pdf', 
+        'pT':       False,
+        'sum_unc':  True
+    }
+]
+
+folders  = ["w0", "w7"]
+labels = ["track is matched to muon", "track is loose muon"]
+
+_SC_WP_COMPARISON = [
+    {
+        'in_fname': 'sf_sc.root', 
+        'out_pdf':  'paper/loose_vs_ismatched/sf_sc_pt_wp.pdf', 
+        'pT':       True,
+        'sum_unc':  False,
+        'folders':  folders,
+        'labels':   labels
+    },
+    {
+        'in_fname': 'sf_sc.root', 
+        'out_pdf':  'paper/loose_vs_ismatched/sf_sc_qeta_wp.pdf', 
+        'pT':       False,
+        'sum_unc':  False,
+        'folders':  folders,
+        'labels':   labels
+    },
+    {
+        'in_fname': 'sf_sl.root', 
+        'out_pdf':  'paper/loose_vs_ismatched/sf_sl_pt_wp.pdf', 
+        'pT':       True,
+        'sum_unc':  False,
+        'folders':  folders,
+        'labels':   labels
+    },
+    {
+        'in_fname': 'sf_sl.root', 
+        'out_pdf':  'paper/loose_vs_ismatched/sf_sl_qeta_wp.pdf', 
+        'pT':       False,
+        'sum_unc':  False,
+        'folders':  folders,
+        'labels':   labels
+    },
+    {
+        'in_fname': 'sf_mg.root', 
+        'out_pdf':  'paper/loose_vs_ismatched/sf_mg_pt_wp.pdf', 
+        'pT':       True,
+        'sum_unc':  False,
+        'folders':  folders,
+        'labels':   labels
+    },
+    {
+        'in_fname': 'sf_mg.root', 
+        'out_pdf':  'paper/loose_vs_ismatched/sf_mg_qeta_wp.pdf', 
+        'pT':       False,
+        'sum_unc':  False,
+        'folders':  folders,
+        'labels':   labels
+    }
+]
+
+for kwargs in _H2D:
+    pf.plot_2d_histogram(**kwargs)
+for kwargs_idms, kwargs_muid in zip(IDMS_H1D, MUID_H1D):
+    pf.plot_1d_histogram(**kwargs_idms)
+    pf.plot_1d_histogram(**kwargs_muid)
 for kwargs in _EFF:
     pf.plot_efficiency(**kwargs)
+for kwargs in _SC_WP:
+    pf.plot_scale_factor(**kwargs)
+for kwargs in _SC_WP_COMPARISON:
+    pf.plot_scale_factor(**kwargs)

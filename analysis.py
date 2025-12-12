@@ -5,7 +5,7 @@ import ROOT
 import os
 import subprocess
 
-VALID_WP = range(0, 7)  # 0–6
+VALID_WP = range(0, 8)  # 0–6
 
 def wp_type(s: str) -> int:
     """Custom argparse type for working points 0–6."""

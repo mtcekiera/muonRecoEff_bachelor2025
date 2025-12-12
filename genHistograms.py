@@ -39,48 +39,53 @@ def main():
 
             Entry("tag_pt", 100, 0, 40),
             Entry("tag_phi", 100, -3.2, 3.2),
-            Entry("tag_eta", 100, -3, 3),
+            Entry("tag_eta", 100, -2.4, 2.4),
 
 
             Entry("probe_pt",  100, 0, 40),
             Entry("probe_phi", 100, -3.2, 3.2),
             Entry("probe_eta", 100, -3, 3),
 
-            Entry("probe_pt_presel", 100, 0, 40),
-            Entry("probe_pt_midsel", 100, 0, 40),
+            # Entry("probe_pt_presel", 100, 0, 40),
+            # Entry("probe_pt_midsel", 100, 0, 40),
             Entry("probe_pt_postsel", 100, 0, 40),
 
-            Entry("probe_phi_presel", 100, -3.2, 3.2),
+            # Entry("probe_phi_presel", 100, -3.2, 3.2),
             Entry("probe_phi_postsel", 100, -3.2, 3.2),
 
-            Entry("probe_eta_presel", 100, -3, 3),
+            # Entry("probe_eta_presel", 100, -3, 3),
             Entry("probe_eta_postsel", 100, -3, 3),
 
-            Entry("probe_d0_presel", 100, -25, 25),
-            Entry("probe_d0_postsel", 100, -25, 25),
+            # Entry("probe_d0_presel", 100, -25, 25),
+            Entry("probe_d0_postsel", 100, -2, 2),
             
-            Entry("probe_dR_presel", 100, 0, 0.3),
-            Entry("probe_dR_midsel", 100, 0, 0.03),
+            # Entry("probe_dR_presel", 100, 0, 0.3),
+            # Entry("probe_dR_midsel", 100, 0, 0.1),
+            Entry("probe_dR_postsel", 100, 0, 0.1),
+            # Entry("probe_dR_postsel_shortrange", 100, 0, 0.01),
 
 
-            Entry("TPpair_aco_presel", 100, 0, 0.2),
-            Entry("TPpair_aco_midsel", 100, 0, 0.2),
+            # Entry("TPpair_aco_presel", 100, 0, 0.2),
+            # Entry("TPpair_aco_midsel", 100, 0, 0.2),
+            Entry("TPpair_aco_postsel", 100, 0, 0.02),
 
-            Entry("TPpair_pt_presel", 100, 0, 10),
-            Entry("TPpair_pt_midsel", 100, 0, 10),
-            Entry("TPpair_pt_postsel", 100, 0, 10),
+            # Entry("TPpair_pt_presel", 100, 0, 10),
+            # Entry("TPpair_pt_midsel", 100, 0, 10),
+            Entry("TPpair_pt_postsel", 100, 0, 2),
 
-            Entry("TPpair_dR_presel", 100, 0, 5),
+            # Entry("TPpair_dR_presel", 100, 0, 5),
             Entry("TPpair_dR_postsel", 100, 0, 5),
 
-            Entry("TPpair_M_presel", 100, 0, 100),
+            # Entry("TPpair_M_presel", 100, 0, 100),
             Entry("TPpair_M_postsel", 100, 0, 100)
         ]
-        hist_eps_cutflow = ROOT.TH1I("hist_eps_cutflow", "hist_eps_cutflow", 20, 0, 20)
+        # hist_eps_cutflow = ROOT.TH1I("hist_eps_cutflow", "hist_eps_cutflow", 20, 0, 20)
 
         cuts = ["All", "HLT", "passes ZDC", "nMuon>=1", "track_n<=2", "at least 1 matched probe"]
-        for i in range(len(cuts)):
-            hist_eps_cutflow.GetXaxis().SetBinLabel(i+1, cuts[i])
+        # for i in range(len(cuts)):
+            # hist_eps_cutflow.GetXaxis().SetBinLabel(i+1, cuts[i])
+        hist_dR_short = ROOT.TH1D('probe_dR_postsel_shortrange', 'dR on a shorter range', 100, 0, 0.01)
+
     else:
         histogram_params = [
             Entry("eps_pass", 100, 0, 50),
@@ -92,6 +97,7 @@ def main():
     dR_v_probe_pt_midsel = ROOT.TH2D("dR_v_probe_pt_midsel", "dR vs. probe pt", 100, 0, 50, 100, 0, 0.3)
     aco_v_probe_pt_presel = ROOT.TH2D("aco_v_probe_pt_presel", "aco vs. probe pt", 100, 0, 5, 100, 0, 0.3)
     aco_v_probe_pt_midsel = ROOT.TH2D("aco_v_probe_pt_midsel", "aco vs. probe pt", 100, 0, 5, 100, 0, 0.3)
+
     # histograms = []
     # for entry in histogram_params:
         # histograms.append(ROOT.TH1D("hist_"+entry.name, "hist_"+entry.name, entry.bins, entry.xmin, entry.xmax))
@@ -108,7 +114,7 @@ def main():
     total_events = tree.GetEntries()
     for event in tree:
         if j % 10000 == 0:
-            print(f"\rProgress: {j} / {total_events}", end="", flush=True)
+            print(f"\rProgress: {j//1000}k / {total_events//1000}k - {(100*j/total_events):.0f}%", end="", flush=True)
         j += 1
         weight = getattr(event, "weight")
         hist_weight.Fill(weight)
@@ -118,9 +124,12 @@ def main():
                 histograms[entry.name].Fill(val, weight)
                 
         if save_all:
-            vals = getattr(event, "eps_cutflow")
-            for val in vals:
-                hist_eps_cutflow.Fill(val)
+            dR_short_vals = getattr(event, 'probe_dR_postsel')
+            for val in dR_short_vals:
+                hist_dR_short.Fill(val)
+            # vals = getattr(event, "eps_cutflow")
+            # for val in vals:
+                # hist_eps_cutflow.Fill(val)ss
 
             # pt - dR corr
             vals_pt_pre = getattr(event, "probe_pt_presel")
@@ -151,7 +160,7 @@ def main():
                     aco_v_probe_pt_midsel.Fill(val_pair_pt_mid, val_pair_aco_mid, weight)
         
 
-    print(f"\rProgress: {total_events} / {total_events}", end="", flush=True)
+    print(f"\rProgress: {total_events//1000}k / {total_events//1000}k - 100%", end="", flush=True)
     print("\n[ Done ]")
     print("")
     
@@ -160,7 +169,8 @@ def main():
     for h in histograms.values():
         h.Write()
     if save_all:
-        hist_eps_cutflow.Write()
+        hist_dR_short.Write()
+        # hist_eps_cutflow.Write()
         dR_v_probe_pt_presel.Write()
         dR_v_probe_pt_midsel.Write()
         aco_v_probe_pt_presel.Write()
