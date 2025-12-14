@@ -129,7 +129,7 @@ def _run(cmd: list[str], check: bool = False) -> None:
 def _run_root_macro(input_path: str, output_path: str, mode: int, norm: float, wp: int) -> None:
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     arg = f'G2TauTree.C("{input_path}", "{output_path}", {mode}, {norm}, {wp})'
-    cmd = ["root", "-l", "-q", arg]
+    cmd = ["root", "-l", "-q", "-b", arg]
     _run(cmd, check=False)  # ROOT may return a pointer → non-zero code
 
 

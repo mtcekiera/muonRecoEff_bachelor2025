@@ -178,13 +178,13 @@ def main():
             vals_qeta_pass = getattr(event, "eps_qEta_pass")
             for val_pt in vals_pt_pass:
                 for val_qeta in vals_qeta_pass:
-                    hist_eps_2d_pass.Fill(val_pt, val_qeta)
+                    hist_eps_2d_pass.Fill(val_pt, val_qeta, weight)
 
             vals_pt_total = getattr(event, "eps_total")
             vals_qeta_total = getattr(event, "eps_qEta_total")
             for val_pt in vals_pt_total:
                 for val_qeta in vals_qeta_total:
-                    hist_eps_2d_total.Fill(val_pt, val_qeta)
+                    hist_eps_2d_total.Fill(val_pt, val_qeta, weight)
         
 
     print(f"\rProgress: {total_events//1000}k / {total_events//1000}k - 100%", end="", flush=True)

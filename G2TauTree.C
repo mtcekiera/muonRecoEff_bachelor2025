@@ -276,14 +276,14 @@ void G2TauTree::Loop()
             output_tree->Fill();
             continue;
         }
-        eps_cutflow->push_back(2);
+        // eps_cutflow->push_back(2);
         //at least 1 muon
 
         if(!(nMuon >= 1)){
             output_tree->Fill();
             continue;
         } 
-        eps_cutflow->push_back(3);
+        eps_cutflow->push_back(2);
         // up to 2 tracks
         // if(!(track_n<=2))
         
@@ -292,8 +292,20 @@ void G2TauTree::Loop()
             output_tree->Fill();
             continue;
         } 
+        eps_cutflow->push_back(3);
+        
+        int MSmuon_n = MSmuon_d0->size();
+        if(!TPType){
+            if(!(MSmuon_n==2)){
+                output_tree->Fill();
+                continue;
+            }
+        }
         eps_cutflow->push_back(4);
 
+        bool tag_found = false;
+        bool probe_found = false;
+        bool probe_matched = false;
         //finding tag
         for(int tag = 0; tag<nMuon; tag++)
         {
@@ -313,10 +325,11 @@ void G2TauTree::Loop()
             tag_phi->push_back(muon_phi->at(tag));
             tag_eta->push_back(muon_eta->at(tag));
 
+            tag_found = true;
+
             /////////////////// finding ID||MS probes /////////////////////////////////////
 
-            int MSmuon_n = MSmuon_d0->size();
-            if(!TPType) if(!(MSmuon_n==2)) continue;
+
             if(!TPType) for(int probe = 0; probe<MSmuon_n; probe++)
             { 
                 TLorentzVector v_tag, v_probe, v_pair; 
@@ -358,7 +371,7 @@ void G2TauTree::Loop()
                 
                 eps_total->push_back(MSmuon_pt->at(probe));
                 eps_qEta_total->push_back((MSmuon_eta->at(probe))*(MSmuon_charge->at(probe)));
-
+                probe_found = true;
                 for(int id = 0; id<track_n; id++)
                 {
                     TLorentzVector v_id;
@@ -395,7 +408,7 @@ void G2TauTree::Loop()
 
                     eps_pass->push_back(MSmuon_pt->at(probe));
                     eps_qEta_pass->push_back((MSmuon_eta->at(probe))*(MSmuon_charge->at(probe)));
-
+                    probe_matched = true;
                 }
             }
             /////////////////// finding mu||ID probes /////////////////////////////////////
@@ -438,7 +451,7 @@ void G2TauTree::Loop()
 
                 eps_qEta_total->push_back((track_eta->at(probe))*(track_charge->at(probe)));
                 eps_total->push_back(track_pt->at(probe));
-
+                probe_found = true;
                 for(int m_LPt = 0; m_LPt < nMuon; m_LPt++)
                 {
                     TLorentzVector v_m_LPt;
@@ -449,12 +462,6 @@ void G2TauTree::Loop()
                     probe_pt_presel->push_back(track_pt->at(probe));
                     probe_dR_presel->push_back(probe_dR);
 
-                    // if(wpTight){
-                    //     if(!(muon_is_Tight->at(m_LPt))) continue;
-                    // }
-                    // else{
-                    //     if(!(muon_is_LowPt->at(m_LPt))) continue; // nie is_loose?
-                    // }
                     if(!(muon_is_LowPt->at(m_LPt))) continue;
 
                     // dR - probe pt corr.
@@ -480,17 +487,13 @@ void G2TauTree::Loop()
 
                     eps_pass->push_back(track_pt->at(probe));
                     eps_qEta_pass->push_back((track_eta->at(probe))*(track_charge->at(probe)));
-                    
+                    probe_matched = true;
                 }
             }
         }
-        if(!TPpair_n){
-            output_tree->Fill();
-            continue;
-        } 
-        eps_cutflow->push_back(5);
-
-        
+        if(tag_found) eps_cutflow->push_back(5);
+        if(probe_found) eps_cutflow->push_back(6);
+        if(probe_matched) eps_cutflow->push_back(7);
 
         output_tree->Fill();
 

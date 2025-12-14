@@ -56,12 +56,12 @@ def add_cut_lines(
 #
 def draw_2d_hist(
     h2,
+    canvas_size,
     x_label="X",
     y_label="Y",
     z_label="",
     title_text="",
     canvas_name="c2d",
-    canvas_size=(800, 600),
     logz=False,
     logx=False,
     text_ndc_pos=(0.15, 0.93),
@@ -89,6 +89,7 @@ def draw_2d_hist(
     h2.GetXaxis().SetTitleSize(0.045)
     h2.GetYaxis().SetTitleSize(0.045)
     h2.GetZaxis().SetTitleSize(0.045)
+
     drawopt = "COLZ"
     if text:
         ROOT.gStyle.SetPaintTextFormat('4.2f')
@@ -104,6 +105,9 @@ def draw_2d_hist(
         # pad2.SetTicks(1, 1)
     
     if tight_layout:
+        c.SetLeftMargin(0.10)
+        h2.GetYaxis().SetTitleOffset(0.3)
+
         min, max = h2.GetMinimum(), h2.GetMaximum()
         h2.SetMinimum(min-0.02)
         # h2.SetMaximum(max)
@@ -134,7 +138,8 @@ def plot_2d_histogram(
         y_cuts = None,
         text = False,
         tight_layout = False,
-        pdf_name
+        pdf_name,
+        canvas_size=(800,600)
 
 ):
     f = ROOT.TFile(in_fname)
@@ -146,7 +151,8 @@ def plot_2d_histogram(
         logz=logz,
         logx=logx,
         text=text,
-        tight_layout=tight_layout
+        tight_layout=tight_layout,
+        canvas_size=canvas_size
     )
 
     lines = add_cut_lines(
@@ -474,7 +480,7 @@ def draw_one_eff(canvas, data_obj, mc_obj, title, xlabel, ylabel, ylim, logx=Fal
     if logx:
         pad2.SetLogx()
 
-    frame_bot = pad2.DrawFrame(xmin, 0.5, xmax, 1.5)
+    frame_bot = pad2.DrawFrame(xmin, 0.93, xmax, 1.08)
     xaxis_bot = frame_bot.GetXaxis()
     yaxis_bot = frame_bot.GetYaxis()
 
@@ -729,7 +735,7 @@ def style_hist_like_graph(h, g_src):
     h.SetFillStyle(0)
 
 FOLDERS  = ["w0", "w1", "w2", "w3", "w4", "w5", "w6"]
-LABELS   = ["Nominal", "Tight tag", "Tight #it{A}_{#phi}<0.01", "Loose #it{A}_{#phi}<0.03", "ZDC #it{E}<1TeV", "No #it{d}_{0} cut", "#it{p}^{tag}_{#it{T}}<1GeV"]
+LABELS   = ["Nominal", "Tight tag", "Tight #it{A}_{#phi}<0.01", "Loose #it{A}_{#phi}<0.03", "ZDC #it{E}<1TeV", "No #it{d}_{0} cut", "#it{p}^{t-p}_{#it{T}}<1GeV"]
 
 
 def plot_scale_factor(*,
@@ -843,17 +849,17 @@ def plot_scale_factor(*,
         style_total_band(total_band)
 
         c.Clear(); c.SetLogx(logx)
-        frame2 = ROOT.TH1F("frame2", ";#it{p}_{#it{T}} [GeV];Scale factor", 1, xmin, xmax)
-        frame2.SetDirectory(0)
-        frame2.SetMinimum(ymin); frame2.SetMaximum(ymax)
-        frame2.Draw()
+        # frame1 = ROOT.TH1F("frame1", ";#it{p}_{#it{T}} [GeV];Scale factor", 1, xmin, xmax)
+        frame1.SetDirectory(0)
+        frame1.SetMinimum(ymin); frame1.SetMaximum(ymax)
+        frame1.Draw()
         total_band.Draw("E2 SAME");# total_band.Draw("E1 SAME")
         g_nom.Draw("P E1 SAME")
         leg2 = make_legend_total(g_nom, total_band)
         leg2.Draw()
 
 
-        xaxis = frame2.GetXaxis()
+        xaxis = frame1.GetXaxis()
  
         xaxis.SetMoreLogLabels(True)
         xaxis.SetNoExponent(True)
