@@ -79,10 +79,14 @@ def draw_2d_hist(
         c.SetLogz()
 
     ROOT.gStyle.SetOptStat(0)
+    if text:
+        h2.Scale(100)
+        
     h2.SetStats(0)
     h2.SetTitle("")
     h2.GetXaxis().SetTitle(x_label)
     h2.GetYaxis().SetTitle(y_label)
+    h2.GetZaxis().SetTitle(z_label)
     if z_label:
         h2.GetZaxis().SetTitle(z_label)
 
@@ -92,7 +96,7 @@ def draw_2d_hist(
 
     drawopt = "COLZ"
     if text:
-        ROOT.gStyle.SetPaintTextFormat('4.2f')
+        ROOT.gStyle.SetPaintTextFormat('4.1f')
         drawopt = "COLZ TEXT"
         h2.GetXaxis().SetTickLength(0.0)
         h2.GetYaxis().SetTickLength(0.0)
@@ -132,6 +136,7 @@ def plot_2d_histogram(
         h2_name,
         x_label = "",
         y_label = "",
+        z_label = "",
         logz = False,
         logx = False,
         x_cuts = None,
@@ -148,6 +153,7 @@ def plot_2d_histogram(
         h2 = h2,
         x_label=x_label,
         y_label=y_label,
+        z_label=z_label,
         logz=logz,
         logx=logx,
         text=text,
@@ -385,11 +391,15 @@ def plot_1d_histogram(
 
 # ------------- efficiency plots -------------
 
-def info_text(*, xpos = 0.2, ypos = 0.8):
+def info_text(*, xpos = 0.2, ypos = 0.8, pt_variant = True):
         txt = ROOT.TLatex()
         txt.SetNDC(True)        # use normalized (0..1) coordinates
         txt.SetTextSize(0.04)
-        txt.DrawLatex(xpos, ypos, "#splitline{#sqrt{s_{NN}} = 5.36 TeV}{-2.4 < #eta < 2.4}")
+        if pt_variant:
+            txt.DrawLatex(xpos, ypos, "#splitline{#sqrt{s_{NN}} = 5.36 TeV}{-2.4 < #eta < 2.4}")
+        else:
+            txt.DrawLatex(xpos, ypos, "#splitline{#sqrt{s_{NN}} = 5.36 TeV}{3 GeV < #it{p}_{#it{T}} < 50 GeV}")
+
 
 
 def ratio_of_TEff(e1, e2):
@@ -442,7 +452,7 @@ def style_obj(o, color, marker):
     o.SetLineWidth(2)
 
 
-def draw_one_eff(canvas, data_obj, mc_obj, title, xlabel, ylabel, ylim, logx=False):
+def draw_one_eff(canvas, data_obj, mc_obj, title, xlabel, ylabel, ylim, ylim_ratio, logx=False):
     canvas.Clear(); canvas.Divide(1, 2)
     is_eff = data_obj.InheritsFrom("TEfficiency")
     xmin, xmax = -2.4, 2.4
@@ -455,6 +465,7 @@ def draw_one_eff(canvas, data_obj, mc_obj, title, xlabel, ylabel, ylim, logx=Fal
     if(logx):
         pad1.SetLogx()
     ymin, ymax = ylim
+    ymin_ratio, ymax_ratio = ylim_ratio
     frame_top = pad1.DrawFrame(xmin, ymin, xmax, ymax)
     frame_top.SetTitle(f"{title};{xlabel};{ylabel}")
     frame_top.GetXaxis().SetLabelSize(0)
@@ -464,9 +475,10 @@ def draw_one_eff(canvas, data_obj, mc_obj, title, xlabel, ylabel, ylim, logx=Fal
     style_obj(mc_obj,   ROOT.kRed + 1, 24)
     data_obj.Draw("P SAME")
     mc_obj.Draw("P SAME")
-    info_text(xpos = 0.2, ypos = 0.2)
+    info_text(xpos = 0.2, ypos = 0.2, pt_variant=logx)
 
-    leg = ROOT.TLegend(0.60, 0.10, 0.88, 0.28)
+    leg = ROOT.TLegend(0.60, 0.70, 0.88, 0.88)
+    # leg = ROOT.TLegend()
     leg.SetBorderSize(0)
     leg.AddEntry(data_obj, "Data 2023", "pe")
     leg.AddEntry(mc_obj,   "SuperChic #gamma#gamma#rightarrow#mu#mu",   "pe")
@@ -480,7 +492,7 @@ def draw_one_eff(canvas, data_obj, mc_obj, title, xlabel, ylabel, ylim, logx=Fal
     if logx:
         pad2.SetLogx()
 
-    frame_bot = pad2.DrawFrame(xmin, 0.93, xmax, 1.08)
+    frame_bot = pad2.DrawFrame(xmin, ymin_ratio, xmax, ymax_ratio)
     xaxis_bot = frame_bot.GetXaxis()
     yaxis_bot = frame_bot.GetYaxis()
 
@@ -524,7 +536,8 @@ def plot_efficiency( *,
         title = '',
         xlabel = '',
         ylabel = '',
-        ylim = (0.7, 1.05)
+        ylim = (0.7, 1.1),
+        ylim_ratio = (0.93, 1.07)
 ):
     fD = ROOT.TFile.Open(data_fname)
     fM = ROOT.TFile.Open(mc_fname)
@@ -541,7 +554,7 @@ def plot_efficiency( *,
         return
     
     c = ROOT.TCanvas("c", "c", canvas_size[0], canvas_size[1])
-    draw_one_eff(c, data_eff, mc_eff, title, xlabel, ylabel, ylim, logx)
+    draw_one_eff(c, data_eff, mc_eff, title, xlabel, ylabel, ylim, ylim_ratio, logx)
     c.Print(output_pdf)
 
 # ----------- scale factors --------------
@@ -643,7 +656,9 @@ def style_total_band(g):
     g.SetMarkerStyle(1)
 
 def make_legend(graphs, labels):
-    leg = ROOT.TLegend(0.58, 0.15, 0.88, 0.37)
+    # leg = ROOT.TLegend(0.58, 0.15, 0.88, 0.37)
+    leg = ROOT.TLegend(0.23, 0.15, 0.53, 0.26)
+    leg.SetNColumns(2)
     leg.SetBorderSize(0)
     # leg.AddEntry(graphs[0], "Nominal (w0)", "pe")
     leg.AddEntry(graphs[0], labels[0], "lep")
@@ -653,10 +668,10 @@ def make_legend(graphs, labels):
     return leg
 
 def make_legend_total(nom, total_band):
-    leg = ROOT.TLegend(0.58, 0.15, 0.88, 0.3)
+    leg = ROOT.TLegend(0.23, 0.25, 0.48, 0.3)
     leg.SetBorderSize(0)
-    leg.AddEntry(nom, "Nominal (w0)", "lep")
-    leg.AddEntry(total_band, "Total syst. (quadrature)", "f")
+    leg.AddEntry(nom, "Nominal", "lep")
+    leg.AddEntry(total_band, "Total syst.", "f")
     return leg
 
 def graph_to_hist_step(g, name, logx=False):
@@ -735,7 +750,9 @@ def style_hist_like_graph(h, g_src):
     h.SetFillStyle(0)
 
 FOLDERS  = ["w0", "w1", "w2", "w3", "w4", "w5", "w6"]
+# FOLDERS  = ["w0", "w1", "w2", "w3", "w4", "w6"]
 LABELS   = ["Nominal", "Tight tag", "Tight #it{A}_{#phi}<0.01", "Loose #it{A}_{#phi}<0.03", "ZDC #it{E}<1TeV", "No #it{d}_{0} cut", "#it{p}^{t-p}_{#it{T}}<1GeV"]
+# LABELS   = ["Nominal", "Tight tag", "Tight #it{A}_{#phi}<0.01", "Loose #it{A}_{#phi}<0.03", "ZDC #it{E}<1TeV", "#it{p}^{t-p}_{#it{T}}<1GeV"]
 
 
 def plot_scale_factor(*,
@@ -753,7 +770,7 @@ def plot_scale_factor(*,
     ROOT.gStyle.SetHatchesLineWidth(1)
     ROOT.gStyle.SetHatchesSpacing(1.2)
 
-    ymin, ymax = 0.75, 1.1
+    ymin, ymax = 0.9, 1.05
 
     if pT:
         eff_name = 'scale_factor_pT'
@@ -817,7 +834,6 @@ def plot_scale_factor(*,
             if not g:
                 h_steps.append(None)
                 continue
-            # pass logx flag here 👇
             h = graph_to_hist_step(g, f"h_step_{idx}", logx=logx)
             if h is None:
                 print("Histogram is invalid, possible empty graphs")
@@ -829,17 +845,16 @@ def plot_scale_factor(*,
         g_nom.Draw("P E1 SAME")
 
         ROOT.gPad.RedrawAxis()
-        leg1 = make_legend(graphs, labels)  # legend still refers to original graphs
+        leg1 = make_legend(graphs, labels)
         leg1.Draw()
 
         xaxis = frame1.GetXaxis()
 
         xaxis.SetMoreLogLabels(True)
         xaxis.SetNoExponent(True)
-        # frame1.SetTicks(1, 1)
-    else:
+        info_text(pt_variant=pT)
 
-        # Page 2: quadrature-summed systematic band
+    else:
         syst_graphs = []
         for i in range(1, len(graphs)):
             if graphs[i] is None: continue
@@ -849,11 +864,10 @@ def plot_scale_factor(*,
         style_total_band(total_band)
 
         c.Clear(); c.SetLogx(logx)
-        # frame1 = ROOT.TH1F("frame1", ";#it{p}_{#it{T}} [GeV];Scale factor", 1, xmin, xmax)
         frame1.SetDirectory(0)
         frame1.SetMinimum(ymin); frame1.SetMaximum(ymax)
         frame1.Draw()
-        total_band.Draw("E2 SAME");# total_band.Draw("E1 SAME")
+        total_band.Draw("E2 SAME");
         g_nom.Draw("P E1 SAME")
         leg2 = make_legend_total(g_nom, total_band)
         leg2.Draw()
@@ -863,7 +877,7 @@ def plot_scale_factor(*,
  
         xaxis.SetMoreLogLabels(True)
         xaxis.SetNoExponent(True)
-        info_text()
+        info_text(pt_variant=pT)
 
     c.Modified(); c.Update(); c.Print(out_pdf)
 

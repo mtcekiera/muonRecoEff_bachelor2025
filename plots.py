@@ -12,52 +12,53 @@ EFF_MC_FNAME = "output/eff/w0/eff_mc_sc.root"
 
 
 _H2D = [
-    {
-    'in_fname': IDMS_DATA_FNAME,
-    'h2_name': "aco_v_probe_pt_presel",
-    'x_label':"#it{p}_{#it{T}}^{ID,exMS}",
-    'y_label':"#it{a}_{#it{#phi}}^{ID,exMS}",
-    'x_cuts': [2],
-    'y_cuts': [0.02],
-    'logz':     True,
-    'pdf_name':"paper/idms/aco_v_pairPt.pdf"},
+    # {
+    # 'in_fname': IDMS_DATA_FNAME,
+    # 'h2_name': "aco_v_probe_pt_presel",
+    # 'x_label':"#it{p}_{#it{T}}^{ID,exMS}",
+    # 'y_label':"#it{a}_{#it{#phi}}^{ID,exMS}",
+    # 'x_cuts': [2],
+    # 'y_cuts': [0.02],
+    # 'logz':     True,
+    # 'pdf_name':"paper/idms/aco_v_pairPt.pdf"},
 
-    {
-    'in_fname': MUID_DATA_FNAME,
-    'h2_name': "aco_v_probe_pt_presel",
-    'x_label':"#it{p}_{#it{T}}^{#it{#mu},ID}",
-    'y_label':"#it{a}_{#it{#phi}}^{#it{#mu},ID}",
-    'x_cuts': [2],
-    'y_cuts': [0.02],
-    'logz':     True,
-    'pdf_name':"paper/muid/aco_v_pairPt.pdf"
-    },
+    # {
+    # 'in_fname': MUID_DATA_FNAME,
+    # 'h2_name': "aco_v_probe_pt_presel",
+    # 'x_label':"#it{p}_{#it{T}}^{#it{#mu},ID}",
+    # 'y_label':"#it{a}_{#it{#phi}}^{#it{#mu},ID}",
+    # 'x_cuts': [2],
+    # 'y_cuts': [0.02],
+    # 'logz':     True,
+    # 'pdf_name':"paper/muid/aco_v_pairPt.pdf"
+    # },
 
-    {
-    'in_fname': IDMS_DATA_FNAME,
-    'h2_name': "dR_v_probe_pt_presel",
-    'x_label': "#it{p}_{#it{T}}^{exMS}",
-    'y_label': "#Delta#it{R}^{exMS,ID}",
-    'y_cuts': [0.1],
-    'logz':     True,
-    'pdf_name':"paper/idms/dr_v_probePt.pdf"
-    },
+    # {
+    # 'in_fname': IDMS_DATA_FNAME,
+    # 'h2_name': "dR_v_probe_pt_presel",
+    # 'x_label': "#it{p}_{#it{T}}^{exMS}",
+    # 'y_label': "#Delta#it{R}^{exMS,ID}",
+    # 'y_cuts': [0.1],
+    # 'logz':     True,
+    # 'pdf_name':"paper/idms/dr_v_probePt.pdf"
+    # },
 
-    {
-    'in_fname': MUID_DATA_FNAME,
-    'h2_name': "dR_v_probe_pt_presel",
-    'x_label': "#it{p}_{#it{T}}^{ID}",
-    'y_label': "#Delta#it{R}^{#it{#mu},ID}",
-    'y_cuts': [0.01],
-    'logz':     True,
-    'pdf_name':"paper/muid/dr_v_probePt.pdf"
-    },
+    # {
+    # 'in_fname': MUID_DATA_FNAME,
+    # 'h2_name': "dR_v_probe_pt_presel",
+    # 'x_label': "#it{p}_{#it{T}}^{ID}",
+    # 'y_label': "#Delta#it{R}^{#it{#mu},ID}",
+    # 'y_cuts': [0.01],
+    # 'logz':     True,
+    # 'pdf_name':"paper/muid/dr_v_probePt.pdf"
+    # },
 
     {
     'in_fname': "output/eff/w0/sf_sc.root",
     'h2_name': "scale_factor_2d",
     'x_label': "#it{p}_{#it{T}}^{probe}",
     'y_label': "q#eta",
+    'z_label': "Scale Factor [%]",
     'y_cuts': None,
     'logx': True,
     # 'logz': True,
@@ -69,8 +70,23 @@ _H2D = [
     {
     'in_fname': "output/eff/w0/eff_mc_sc.root",
     'h2_name': "total_2d_eff",
-    'x_label': "#it{p}_{#it{T}}^{probe}",
+    'x_label': "#it{p}_{#it{T}}",
     'y_label': "q#eta",
+    'z_label': "#mu efficiency [%]",
+    'y_cuts': None,
+    'logx': True,
+    # 'logz': True,
+    'pdf_name':"paper/eff/sc_total_2d_eff.pdf",
+    'text': True,
+    'tight_layout': True,
+    'canvas_size': (1200, 800)
+    },
+    {
+    'in_fname': "output/eff/w0/eff_data23.root",
+    'h2_name': "total_2d_eff",
+    'x_label': "#it{p}_{#it{T}}",
+    'y_label': "q#eta",
+    'z_label': "#mu efficiency [%]",
     'y_cuts': None,
     'logx': True,
     # 'logz': True,
@@ -80,16 +96,175 @@ _H2D = [
     'canvas_size': (1200, 800)
     },
     {
-    'in_fname': "output/eff/w0/eff_data23.root",
-    'h2_name': "total_2d_eff",
-    'x_label': "#it{p}_{#it{T}}^{probe}",
+    'in_fname': "output/eff/w0/eff_mc_sc.root",
+    'h2_name': "ID_MS_2d_eff",
+    'x_label': "#it{p}_{#it{T}}",
     'y_label': "q#eta",
+    'z_label': "ID|MS efficiency [%]",
     'y_cuts': None,
     'logx': True,
     # 'logz': True,
-    'pdf_name':"paper/eff/sc_total_2d_eff.pdf",
+    'pdf_name':"paper/eff/sc_idms_2d_eff.pdf",
     'text': True,
     'tight_layout': True,
+    'canvas_size': (1200, 800)
+    },
+    {
+    'in_fname': "output/eff/w0/eff_data23.root",
+    'h2_name': "ID_MS_2d_eff",
+    'x_label': "#it{p}_{#it{T}}",
+    'y_label': "q#eta",
+    'z_label': "ID|MD efficiency [%]",
+    'y_cuts': None,
+    'logx': True,
+    # 'logz': True,
+    'pdf_name':"paper/eff/data_idms_2d_eff.pdf",
+    'text': True,
+    'tight_layout': True,
+    'canvas_size': (1200, 800)
+    },
+    {
+    'in_fname': "output/eff/w0/eff_mc_sc.root",
+    'h2_name': "mu_ID_2d_eff",
+    'x_label': "#it{p}_{#it{T}}",
+    'y_label': "q#eta",
+    'z_label': "#mu|ID efficiency [%]",
+    'y_cuts': None,
+    'logx': True,
+    # 'logz': True,
+    'pdf_name':"paper/eff/sc_muid_2d_eff.pdf",
+    'text': True,
+    'tight_layout': True,
+    'canvas_size': (1200, 800)
+    },
+    {
+    'in_fname': "output/eff/w0/eff_data23.root",
+    'h2_name': "mu_ID_2d_eff",
+    'x_label': "#it{p}_{#it{T}}",
+    'y_label': "q#eta",
+    'z_label': "#mu|ID efficiency [%]",
+    'y_cuts': None,
+    'logx': True,
+    # 'logz': True,
+    'pdf_name':"paper/eff/data_muid_2d_eff.pdf",
+    'text': True,
+    'tight_layout': True,
+    'canvas_size': (1200, 800)
+    }
+]
+
+_H2D_control = [
+    {
+    'in_fname': "output/ID_MS/w0/hist_data23.root",
+    'h2_name': "eps_2d_total",
+    'x_label': "#it{p}_{#it{T}}",
+    'y_label': "q#eta",
+    'z_label': "counts",
+    'y_cuts': None,
+    'logx': True,
+    'logz': True,
+    'pdf_name':"paper/idms/eps_2d_total.pdf",
+    # 'text': True,
+    # 'tight_layout': True,
+    'canvas_size': (1200, 800)
+    },
+    {
+    'in_fname': "output/ID_MS/w0/hist_data23.root",
+    'h2_name': "eps_2d_pass",
+    'x_label': "#it{p}_{#it{T}}",
+    'y_label': "q#eta",
+    'z_label': "counts",
+    'y_cuts': None,
+    'logx': True,
+    'logz': True,
+    'pdf_name':"paper/idms/eps_2d_pass.pdf",
+    # 'text': True,
+    # 'tight_layout': True,
+    'canvas_size': (1200, 800)
+    },
+    {
+    'in_fname': "output/mu_ID/w0/hist_data23.root",
+    'h2_name': "eps_2d_total",
+    'x_label': "#it{p}_{#it{T}}",
+    'y_label': "q#eta",
+    'z_label': "counts",
+    'y_cuts': None,
+    'logx': True,
+    'logz': True,
+    'pdf_name':"paper/muid/eps_2d_total.pdf",
+    # 'text': True,
+    # 'tight_layout': True,
+    'canvas_size': (1200, 800)
+    },
+    {
+    'in_fname': "output/mu_ID/w0/hist_data23.root",
+    'h2_name': "eps_2d_pass",
+    'x_label': "#it{p}_{#it{T}}",
+    'y_label': "q#eta",
+    'z_label': "counts",
+    'y_cuts': None,
+    'logx': True,
+    'logz': True,
+    'pdf_name':"paper/muid/eps_2d_pass.pdf",
+    # 'text': True,
+    # 'tight_layout': True,
+    'canvas_size': (1200, 800)
+    },
+
+    {
+    'in_fname': "output/ID_MS/w0/hist_mc_sc.root",
+    'h2_name': "eps_2d_total",
+    'x_label': "#it{p}_{#it{T}}",
+    'y_label': "q#eta",
+    'z_label': "counts",
+    'y_cuts': None,
+    'logx': True,
+    'logz': True,
+    'pdf_name':"paper/idms/eps_2d_total_mc.pdf",
+    # 'text': True,
+    # 'tight_layout': True,
+    'canvas_size': (1200, 800)
+    },
+    {
+    'in_fname': "output/ID_MS/w0/hist_mc_sc.root",
+    'h2_name': "eps_2d_pass",
+    'x_label': "#it{p}_{#it{T}}",
+    'y_label': "q#eta",
+    'z_label': "counts",
+    'y_cuts': None,
+    'logx': True,
+    'logz': True,
+    'pdf_name':"paper/idms/eps_2d_pass_mc.pdf",
+    # 'text': True,
+    # 'tight_layout': True,
+    'canvas_size': (1200, 800)
+    },
+    {
+    'in_fname': "output/mu_ID/w0/hist_mc_sc.root",
+    'h2_name': "eps_2d_total",
+    'x_label': "#it{p}_{#it{T}}",
+    'y_label': "q#eta",
+    'z_label': "counts",
+    'y_cuts': None,
+    'logx': True,
+    'logz': True,
+    'pdf_name':"paper/muid/eps_2d_total_mc.pdf",
+    # 'text': True,
+    # 'tight_layout': True,
+    'canvas_size': (1200, 800)
+    },
+    {
+    'in_fname': "output/mu_ID/w0/hist_mc_sc.root",
+    'h2_name': "eps_2d_pass",
+    'x_label': "#it{p}_{#it{T}}",
+    'y_label': "q#eta",
+    'z_label': "counts",
+    'y_cuts': None,
+    'logx': True,
+    'logz': True,
+    'pdf_name':"paper/muid/eps_2d_pass_mc.pdf",
+    # 'text': True,
+    # 'tight_layout': True,
     'canvas_size': (1200, 800)
     }
 ]
@@ -141,10 +316,28 @@ _H1D = [
         'cut':          None
     },
     {
+        'h_name':       'probe_phi_presel',
+        'output_pdf':   'probe_phi_presel.pdf',
+        'xlabel-idms':  '#it{#phi}^{exMS}',
+        'xlabel-muid':  '#it{#phi}^{ID}',
+        'ylabel':       'no. of probes',
+        'logy':         False,
+        'cut':          None
+    },
+    {
         'h_name':       'probe_phi_postsel',
         'output_pdf':   'probe_phi_postsel.pdf',
         'xlabel-idms':  '#it{#phi}^{exMS}',
         'xlabel-muid':  '#it{#phi}^{ID}',
+        'ylabel':       'no. of probes',
+        'logy':         False,
+        'cut':          None
+    },
+    {
+        'h_name':       'probe_eta_presel',
+        'output_pdf':   'probe_eta_presel.pdf',
+        'xlabel-idms':  '#eta^{exMS}',
+        'xlabel-muid':  '#eta^{ID}',
         'ylabel':       'no. of probes',
         'logy':         False,
         'cut':          None
@@ -258,7 +451,8 @@ _EFF = [
         'mc_fname':     EFF_MC_FNAME,
         'output_pdf':   'paper/eff/ID_MS_eff.pdf',
         'obj_name':     'ID_MS_eff',
-        'ylim':         (0.95, 1.05),
+        'ylim':         (0.99, 1.01),
+        'ylim_ratio':   (0.99, 1.01),
         'logx':         True,
         'xlabel':       '#it{p}_{#it{T}} [GeV]',
         'ylabel':       '#it{#varepsilon}(ID|MS)'
@@ -286,7 +480,8 @@ _EFF = [
         'mc_fname':     EFF_MC_FNAME,
         'output_pdf':   'paper/eff/ID_MS_qEta_eff.pdf',
         'obj_name':     'ID_MS_qeta_eff',
-        'ylim':         (0.95, 1.05),
+        'ylim':         (0.99, 1.01),
+        'ylim_ratio':   (0.99, 1.01),
         'logx':         False,
         'xlabel':       '#it{q#eta}',
         'ylabel':       '#it{#varepsilon}(ID|MS)'
@@ -396,12 +591,15 @@ _SC_WP_COMPARISON = [
 
 # for kwargs in _H2D:
 #     pf.plot_2d_histogram(**kwargs)
+
+# for kwargs in _H2D_control:
+#     pf.plot_2d_histogram(**kwargs)
 # for kwargs_idms, kwargs_muid in zip(IDMS_H1D, MUID_H1D):
 #     pf.plot_1d_histogram(**kwargs_idms)
 #     pf.plot_1d_histogram(**kwargs_muid)
-for kwargs in _EFF:
-    pf.plot_efficiency(**kwargs)
-# for kwargs in _SC_WP:
-    # pf.plot_scale_factor(**kwargs)
+# for kwargs in _EFF:
+#     pf.plot_efficiency(**kwargs)
+for kwargs in _SC_WP:
+    pf.plot_scale_factor(**kwargs)
 # for kwargs in _SC_WP_COMPARISON:
 #     pf.plot_scale_factor(**kwargs)

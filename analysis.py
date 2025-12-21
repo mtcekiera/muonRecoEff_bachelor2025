@@ -275,7 +275,7 @@ def _run_gen_eff(input_path: str, output_path: str, wp:int) -> None:
     subprocess.run(cmd, check=True)
 
 
-def _run_gen_sf(eff_data: str, eff_mc: str, output_path: str) -> None:
+def _run_gen_sf(eff_data: str, eff_mc: str, output_path: str, wp:str) -> None:
     """Call: python genSF.py eff_data eff_mc out."""
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     cmd = [
@@ -284,6 +284,7 @@ def _run_gen_sf(eff_data: str, eff_mc: str, output_path: str) -> None:
         eff_data,
         eff_mc,
         output_path,
+        wp
     ]
     print(" ".join(cmd))
     subprocess.run(cmd, check=True)
@@ -359,7 +360,7 @@ def do_scale_factors(datasets: list[str], wps: list[int]) -> None:
             eff_mc = f"./output/eff/w{wp}/eff_{tag}.root"
             sf_out = f"./output/eff/w{wp}/sf_{ds}.root"  # sf_sc.root, sf_sl.root, sf_mg.root
 
-            _run_gen_sf(eff_data, eff_mc, sf_out)
+            _run_gen_sf(eff_data, eff_mc, sf_out, str(wp))
 
 def do_syst_plots(datasets: list[str]) -> None:
     """

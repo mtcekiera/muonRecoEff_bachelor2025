@@ -44,8 +44,8 @@ def get_2d_efficiency(path, hname_pass, hname_total):
     if not h2_pass or not h2_total:
         f.Close()
         return None
-    h2_pass.Sumw2();
-    h2_total.Sumw2();
+    # h2_pass.Sumw2();
+    # h2_total.Sumw2();
 
     h2_ratio = h2_pass.Clone("h2_ratio")
     h2_ratio.SetDirectory(0)
@@ -61,8 +61,8 @@ def combine_2d_total_eff(eff1, eff2):
     if not eff1 or not eff2:
         print('Efficency histograms empty!')
         return None
-    eff1.Sumw2();
-    eff2.Sumw2();
+    # eff1.Sumw2();
+    # eff2.Sumw2();
     eff_total = eff1.Clone("eps_2d")
     eff_total.SetTitle('eps_2d;p_{T},q#eta')
     eff_total.Multiply(eff2)

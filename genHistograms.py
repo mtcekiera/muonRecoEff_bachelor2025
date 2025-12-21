@@ -47,30 +47,30 @@ def main():
             Entry("probe_phi", 100, -3.2, 3.2),
             Entry("probe_eta", 100, -3, 3),
 
-            # Entry("probe_pt_presel", 100, 0, 40),
+            Entry("probe_pt_presel", 100, 0, 40),
             # Entry("probe_pt_midsel", 100, 0, 40),
             Entry("probe_pt_postsel", 100, 0, 40),
 
-            # Entry("probe_phi_presel", 100, -3.2, 3.2),
+            Entry("probe_phi_presel", 100, -3.2, 3.2),
             Entry("probe_phi_postsel", 100, -3.2, 3.2),
 
-            # Entry("probe_eta_presel", 100, -3, 3),
+            Entry("probe_eta_presel", 100, -3, 3),
             Entry("probe_eta_postsel", 100, -3, 3),
 
             # Entry("probe_d0_presel", 100, -25, 25),
             Entry("probe_d0_postsel", 100, -2, 2),
             
-            # Entry("probe_dR_presel", 100, 0, 0.3),
+            Entry("probe_dR_presel", 100, 0, 0.3),
             # Entry("probe_dR_midsel", 100, 0, 0.1),
             Entry("probe_dR_postsel", 100, 0, 0.1),
             # Entry("probe_dR_postsel_shortrange", 100, 0, 0.01),
 
 
-            # Entry("TPpair_aco_presel", 100, 0, 0.2),
+            Entry("TPpair_aco_presel", 100, 0, 0.2),
             # Entry("TPpair_aco_midsel", 100, 0, 0.2),
             Entry("TPpair_aco_postsel", 100, 0, 0.02),
 
-            # Entry("TPpair_pt_presel", 100, 0, 10),
+            Entry("TPpair_pt_presel", 100, 0, 10),
             # Entry("TPpair_pt_midsel", 100, 0, 10),
             Entry("TPpair_pt_postsel", 100, 0, 2),
 
