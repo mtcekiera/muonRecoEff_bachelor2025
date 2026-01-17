@@ -4,10 +4,6 @@ from array import array
 import os
 import math
 
-### CONFIG ###
-
-RATIO_YMIN, RATIO_YMAX = 0.5, 1.5
-
 # ------------- 2D histograms -------------
 def add_cut_lines(
     hist,
@@ -106,7 +102,6 @@ def draw_2d_hist(
         h2.GetXaxis().SetMoreLogLabels(True)
         h2.GetXaxis().SetNoExponent(True)
         h2.GetXaxis().SetRangeUser(3, 50)
-        # pad2.SetTicks(1, 1)
     
     if tight_layout:
         c.SetLeftMargin(0.10)
@@ -114,9 +109,6 @@ def draw_2d_hist(
 
         min, max = h2.GetMinimum(), h2.GetMaximum()
         h2.SetMinimum(min-0.02)
-        # h2.SetMaximum(max)
-        # n_cont = int(100*(max-min) + 1+1)
-        # ROOT.gStyle.SetPalette(ROOT.kDarkBodyRadiator)
         ROOT.gStyle.SetNumberContours(255)
         ROOT.gROOT.ForceStyle()  
         h2.SetContour(255)
@@ -253,7 +245,8 @@ def make_ratio(data, mc):
     return ratio, band
 
 
-def draw_one_h1d(canvas, h_data, h_mc, title, logy=False, cut:float|None=None):
+def draw_one_h1d(canvas, h_data, h_mc, title, ylim_ratio, logy=False, cut:float|None=None):
+    RATIO_YMIN, RATIO_YMAX = ylim_ratio
     canvas.Clear()
     pad1 = ROOT.TPad("pad1", "pad1", 0, 0.30, 1, 1.00)
     pad2 = ROOT.TPad("pad2", "pad2", 0, 0.00, 1, 0.30)
@@ -294,7 +287,7 @@ def draw_one_h1d(canvas, h_data, h_mc, title, logy=False, cut:float|None=None):
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
     leg.AddEntry(h_data, "Data 2023", "lep")
-    leg.AddEntry(h_mc,   "SuperChic #gamma#gamma#rightarrow#mu#mu", "f")
+    leg.AddEntry(h_mc,   "SuperChic #gamma#gamma#rightarrow#mu^{+}#mu^{-}", "f")
     leg.Draw()
 
     pad1.Modified()
@@ -357,6 +350,7 @@ def plot_1d_histogram(
         title = '',
         xlabel = '',
         ylabel = '',
+        ylim_ratio = (0.5, 1.5)
 ):
     f_data = ROOT.TFile.Open(data_fname, "READ")
     f_mc   = ROOT.TFile.Open(mc_fname,   "READ")
@@ -379,7 +373,7 @@ def plot_1d_histogram(
 
     full_desc = title+';'+xlabel+';'+ylabel
     h_data.SetTitle(title)
-    draw_one_h1d(c, h_data, h_mc, full_desc, logy=logy, cut=cut)
+    draw_one_h1d(c, h_data, h_mc, full_desc, ylim_ratio, logy=logy, cut=cut)
 
     c.Print(output_pdf)
 
@@ -393,12 +387,12 @@ def plot_1d_histogram(
 
 def info_text(*, xpos = 0.2, ypos = 0.8, pt_variant = True):
         txt = ROOT.TLatex()
-        txt.SetNDC(True)        # use normalized (0..1) coordinates
+        txt.SetNDC(True)
         txt.SetTextSize(0.04)
         if pt_variant:
-            txt.DrawLatex(xpos, ypos, "#splitline{#sqrt{s_{NN}} = 5.36 TeV}{-2.4 < #eta < 2.4}")
+            txt.DrawLatex(xpos, ypos, "#splitline{#sqrt{s_{NN}} = 5.36 TeV}{-2.4 < #it{#eta} < 2.4}")
         else:
-            txt.DrawLatex(xpos, ypos, "#splitline{#sqrt{s_{NN}} = 5.36 TeV}{3 GeV < #it{p}_{#it{T}} < 50 GeV}")
+            txt.DrawLatex(xpos, ypos, "#splitline{#sqrt{s_{NN}} = 5.36 TeV}{3 GeV < #it{p}_{T} < 50 GeV}")
 
 
 
@@ -445,7 +439,6 @@ def ratio_of_TGraphs(g1, g2):
 
 # ---------- style ----------
 def style_obj(o, color, marker):
-    # Works for TEfficiency and TGraphAsymmErrors
     o.SetLineColor(color)
     o.SetMarkerColor(color)
     o.SetMarkerStyle(marker)
@@ -461,7 +454,6 @@ def draw_one_eff(canvas, data_obj, mc_obj, title, xlabel, ylabel, ylim, ylim_rat
     pad1 = canvas.cd(1)
     pad1.SetPad(0, 0.30, 1, 1)
     pad1.SetBottomMargin(0.02)
-    # pad1.SetGrid()
     if(logx):
         pad1.SetLogx()
     ymin, ymax = ylim
@@ -478,17 +470,15 @@ def draw_one_eff(canvas, data_obj, mc_obj, title, xlabel, ylabel, ylim, ylim_rat
     info_text(xpos = 0.2, ypos = 0.2, pt_variant=logx)
 
     leg = ROOT.TLegend(0.60, 0.70, 0.88, 0.88)
-    # leg = ROOT.TLegend()
     leg.SetBorderSize(0)
     leg.AddEntry(data_obj, "Data 2023", "pe")
-    leg.AddEntry(mc_obj,   "SuperChic #gamma#gamma#rightarrow#mu#mu",   "pe")
+    leg.AddEntry(mc_obj,   "SuperChic #gamma#gamma#rightarrow#mu^{+}#mu^{-}",   "pe")
     leg.Draw()
 
     pad2 = canvas.cd(2)
     pad2.SetPad(0, 0, 1, 0.30)
     pad2.SetTopMargin(0.05)
     pad2.SetBottomMargin(0.35)
-    # pad2.SetGridy()
     if logx:
         pad2.SetLogx()
 
@@ -504,7 +494,7 @@ def draw_one_eff(canvas, data_obj, mc_obj, title, xlabel, ylabel, ylim, ylim_rat
     xaxis_bot.SetLabelSize(0.10)
     yaxis_bot.SetLabelSize(0.10)
     yaxis_bot.SetTitleOffset(0.45)
-    xaxis_bot.SetTitleOffset(1.2)  # or 1.3 if you want more space
+    xaxis_bot.SetTitleOffset(1.2)
 
     if logx:
         xaxis_bot.SetMoreLogLabels(True)
@@ -558,12 +548,7 @@ def plot_efficiency( *,
     c.Print(output_pdf)
 
 # ----------- scale factors --------------
-
-
-
 BASE_DIR = "output/eff"
-# FOLDERS  = ["w0", "w7"]
-# OBJ_NAME = "scale_factor_pT"
 X_MATCH_TOL = 1e-9
 
 def get_graph(path, eff_name):
@@ -620,7 +605,7 @@ def build_quadrature_band(nom, syst_graphs, name="syst_total_quad"):
             j = find_by_x(gs, x0)
             if j < 0: continue
             _, _, eyl, eyh = errs(gs, j)
-            e = max(eyl, eyh)  # they are equal by construction
+            e = max(eyl, eyh)
             sumsq += e*e
         if sumsq <= 0.0:
             continue
@@ -656,11 +641,9 @@ def style_total_band(g):
     g.SetMarkerStyle(1)
 
 def make_legend(graphs, labels):
-    # leg = ROOT.TLegend(0.58, 0.15, 0.88, 0.37)
     leg = ROOT.TLegend(0.23, 0.15, 0.53, 0.26)
     leg.SetNColumns(2)
     leg.SetBorderSize(0)
-    # leg.AddEntry(graphs[0], "Nominal (w0)", "pe")
     leg.AddEntry(graphs[0], labels[0], "lep")
 
     for g, lab in zip(graphs[1:], labels[1:]):
@@ -690,7 +673,6 @@ def graph_to_hist_step(g, name, logx=False):
         right = x + exh
 
         if right <= left:
-            # Fallback: estimate edges from neighbors
             if i == 0 and n > 1:
                 x_next, _ = point(g, i+1)
                 right = 0.5 * (x + x_next)
@@ -705,7 +687,6 @@ def graph_to_hist_step(g, name, logx=False):
                 left  = 0.5 * (x_prev + x)
                 right = 0.5 * (x + x_next)
 
-        # Only clamp to >0 if we are in log-x mode
         if logx:
             if left <= 0:
                 left = 1e-12
@@ -714,12 +695,10 @@ def graph_to_hist_step(g, name, logx=False):
 
         bins.append((left, right, y))
 
-    # Build edges
     edges = [bins[0][0]]
     for _, r, _ in bins:
         edges.append(r)
 
-    # Ensure strictly increasing; only enforce positivity in logx
     for k in range(1, len(edges)):
         if edges[k] <= edges[k-1]:
             edges[k] = edges[k-1] * (1.0 + 1e-9)
@@ -750,15 +729,12 @@ def style_hist_like_graph(h, g_src):
     h.SetFillStyle(0)
 
 FOLDERS  = ["w0", "w1", "w2", "w3", "w4", "w5", "w6"]
-# FOLDERS  = ["w0", "w1", "w2", "w3", "w4", "w6"]
-LABELS   = ["Nominal", "Tight tag", "Tight #it{A}_{#phi}<0.01", "Loose #it{A}_{#phi}<0.03", "ZDC #it{E}<1TeV", "No #it{d}_{0} cut", "#it{p}^{t-p}_{#it{T}}<1GeV"]
-# LABELS   = ["Nominal", "Tight tag", "Tight #it{A}_{#phi}<0.01", "Loose #it{A}_{#phi}<0.03", "ZDC #it{E}<1TeV", "#it{p}^{t-p}_{#it{T}}<1GeV"]
+LABELS   = ["Nominal", "Tight tag", "Tight #it{A}_{#it{#phi}}<0.01", "Loose #it{A}_{#it{#phi}}<0.03", "ZDC #it{E}<1TeV", "No #it{d}_{0} cut", "#it{p}^{T-P}_{T}<1GeV"]
 
 
 def plot_scale_factor(*,
         in_fname,
         out_pdf,
-        # eff_name,
         folders = FOLDERS,
         labels = LABELS,
         pT = True,
@@ -804,9 +780,7 @@ def plot_scale_factor(*,
                 return
 
     g_nom = graphs[0]
-    # Page 1: individual systematics
 
-    # labels = 
     style_syst(graphs)
     
 
@@ -818,9 +792,9 @@ def plot_scale_factor(*,
 
     c.SetLogx(logx)
     if pT:
-        frame1 = ROOT.TH1F("frame1", ";#it{p}_{#it{T}} [GeV];Scale factor", 1, xmin, xmax)
+        frame1 = ROOT.TH1F("frame1", ";#it{p}_{T} [GeV];Scale factor", 1, xmin, xmax)
     else:
-        frame1 = ROOT.TH1F("frame1", ";q#eta;Scale factor", 1, xmin, xmax)
+        frame1 = ROOT.TH1F("frame1", ";#it{q#eta};Scale factor", 1, xmin, xmax)
 
     if not sum_unc:
         frame1.SetDirectory(0)
@@ -828,7 +802,6 @@ def plot_scale_factor(*,
         frame1.Draw()
         ROOT.gPad.Update()
 
-        # Convert variations (graphs[1:]) to step histos and draw
         h_steps = []
         for idx, g in enumerate(graphs[1:], start=1):
             if not g:

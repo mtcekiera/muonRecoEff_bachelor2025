@@ -1,10 +1,3 @@
-//////////////////////////////////////////////////////////
-// This class has been automatically generated on
-// Fri Jan 17 12:42:02 2025 by ROOT version 6.32.08
-// from TTree G2TauTree/yy->tautau ntuple
-// found on file: data23.root
-//////////////////////////////////////////////////////////
-
 #ifndef G2TauTree_h
 #define G2TauTree_h
 
@@ -22,8 +15,6 @@
 #include <TLorentzVector.h>
 #include <cmath>
 #include <TMath.h>
-
-// Header file for the classes stored in the TTree if any.
 #include <vector>
 
 using namespace std;
@@ -48,9 +39,6 @@ public :
    Double_t TPpair_pt_threshold;
    Bool_t is_LooseMuon;
 
-// Fixed size dimensions of array or collections stored in the TTree if any.
-
-   // Declaration of leaf types
    UInt_t          run_number;
    UInt_t          lumi_block;
    ULong64_t       event_number;

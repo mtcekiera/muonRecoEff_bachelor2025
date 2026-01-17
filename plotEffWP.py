@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import os, sys
 import ROOT
 from array import array
@@ -70,7 +67,7 @@ def build_efficiency_single_file(path, hname_pass, hname_total, edges):
         print(f"Warning: inconsistent pass/total in {path}")
         return None
     te = ROOT.TEfficiency(h_pass, h_total)
-    te.SetStatisticOption(ROOT.TEfficiency.kFNormal)  # sane errors for weighted inputs
+    te.SetStatisticOption(ROOT.TEfficiency.kFNormal)
     return te
 
 def get_efficiencies(analysis, filename):
@@ -123,9 +120,9 @@ def draw_single_category_page(c, title, edges, eff_dict, colors, frame_name,
         if wp not in eff_dict: 
             continue
         g = eff_dict[wp].CreateGraph()
-        g.SetLineColor(colors[i]); g.SetLineWidth(line_width)  # error-bar thickness
+        g.SetLineColor(colors[i]); g.SetLineWidth(line_width)
         g.SetMarkerColor(colors[i]); g.SetMarkerStyle(marker_style[i]); g.SetMarkerSize(MARKER_SIZE)
-        g.Draw("PZ SAME")  # points + asymmetric errors, no connecting lines
+        g.Draw("PZ SAME")
         leg.AddEntry(g, f"{labels[i]}", "p")
         keep.append(g)
 
@@ -137,7 +134,7 @@ def write_pdf(filename, eff_idms, eff_muid, colors, is_data=True):
     c = ROOT.TCanvas("c_"+("data" if is_data else "mc"), "c", 900, 700)
     c.Print(filename + "[")
 
-    # 1) ε(ID||MS)
+    # eps(ID|MS)
     _k1 = draw_single_category_page(
         c, r"#varepsilon(ID||MS)", BIN_EDGES, eff_idms, colors,
         "frame_idms_" + ("data" if is_data else "mc"),
@@ -147,7 +144,7 @@ def write_pdf(filename, eff_idms, eff_muid, colors, is_data=True):
     )
     c.Print(filename)
 
-    # 2) ε(μ||ID)
+    # eps(mu|ID)
     _k2 = draw_single_category_page(
         c, r"#varepsilon(#mu||ID)", BIN_EDGES, eff_muid, colors,
         "frame_muid_" + ("data" if is_data else "mc"),
@@ -157,7 +154,7 @@ def write_pdf(filename, eff_idms, eff_muid, colors, is_data=True):
     )
     c.Print(filename)
 
-    # 3) Total ε(μ)
+    # total eps(mu)
     c.Clear(); c.SetLogx(True); c.SetLogy(False); c.SetGridx(True); c.SetGridy(True)
     frame = ROOT.TH1F("frame_total_" + ("data" if is_data else "mc"),
                       "", len(BIN_EDGES)-1, array('d', BIN_EDGES))
@@ -199,12 +196,10 @@ def main():
     if len(sys.argv) == 4:
         if sys.argv[3].lower() == "mc":
             is_data = False
-    # Build efficiencies once
     eff_IDMS   = get_efficiencies("ID_MS", filename)
     eff_muID   = get_efficiencies("mu_ID", filename)
 
 
-    # MC-only PDF
     write_pdf(out_filename, eff_IDMS, eff_muID, colors, is_data=is_data)
 
     print(f"Wrote: {out_filename}")

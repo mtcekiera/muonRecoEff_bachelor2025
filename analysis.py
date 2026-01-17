@@ -5,7 +5,7 @@ import ROOT
 import os
 import subprocess
 
-VALID_WP = range(0, 8)  # 0–6
+VALID_WP = range(0, 8)
 
 def wp_type(s: str) -> int:
     """Custom argparse type for working points 0–6."""
@@ -24,7 +24,6 @@ def parse_args(argv=None):
         description="Driver script for my analysis pipeline"
     )
 
-    # Steps: analysis / generating / plotting
     parser.add_argument(
         "-a", "--analysis",
         action="store_true",
@@ -52,37 +51,29 @@ def parse_args(argv=None):
     parser.add_argument(
         "-d", "--dataset",
         choices=["data", "sc", "sl", "mg"],
-        nargs="+",          # ⬅ one or more datasets
+        nargs="+",
         required=True,
         help="which dataset(s) to process (data/sc/sl/mg)",
     )
 
-
-    # Working points: one or more integers 0–6
     parser.add_argument(
         "-w", "--wp",
         metavar="WP",
         type=wp_type,
-        nargs="+",        # one or more: -w 0 1 2
+        nargs="+",
         required=True,
         help="working points to run (0–6), space-separated",
     )
 
     args = parser.parse_args(argv)
 
-    # If no step selected → do all
     if not (args.analysis or args.generate or args.efficiency or args.scale_factors or args.z):
         raise KeyError("No action chosen")
 
     return args
 
-
-# --- your actual work functions ---
-
 import os
 import subprocess
-
-# --- config describing your MC samples (from the bash script) ---
 
 MC_SAMPLES = {
     "sc": {  # SuperChic
@@ -130,13 +121,13 @@ def _run_root_macro(input_path: str, output_path: str, mode: int, norm: float, w
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     arg = f'G2TauTree.C("{input_path}", "{output_path}", {mode}, {norm}, {wp})'
     cmd = ["root", "-l", "-q", "-b", arg]
-    _run(cmd, check=False)  # ROOT may return a pointer → non-zero code
+    _run(cmd, check=False)
 
 
 def _run_hadd(output_path: str, inputs: list[str]) -> None:
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     cmd = ["hadd", "-f", "-v", "0", output_path, *inputs]
-    _run(cmd, check=True)   # hadd should succeed or we want to know
+    _run(cmd, check=True)
 
 
 def do_analysis(datasets: list[str], wps: list[int]) -> None:
@@ -146,24 +137,21 @@ def do_analysis(datasets: list[str], wps: list[int]) -> None:
     datasets: list like ["data", "sc", "sl", "mg"]
     wps: list of ints, e.g. [0, 1, 2]
     """
-    # Make sure order is sensible & matches what you're used to
     ordered_mc = ["sc", "sl", "mg"]
 
     for wp in wps:
         print(f"\n================ WP = {wp} ================\n")
 
-        # --- MC (sc / sl / mg) ---
         for ds in ordered_mc:
             if ds not in datasets:
                 continue
 
             cfg = MC_SAMPLES[ds]
-            tag = cfg["tag"]          # mc_sc, mc_sl, mc_mg
-            name = cfg["name"]        # SuperChic / StarLight / MadGraph
+            tag = cfg["tag"]
+            name = cfg["name"]
 
             print(f"(MC, {name}) Analysing wp={wp}")
 
-            # Run ROOT macro for each mass range
             for suffix, norm in cfg["files"]:
                 in_file  = f"./input/{tag}_{suffix}.root"
                 out_id   = f"./output/ID_MS/w{wp}/{tag}_{suffix}.root"
@@ -172,7 +160,6 @@ def do_analysis(datasets: list[str], wps: list[int]) -> None:
                 _run_root_macro(in_file, out_id, 0, norm, wp)
                 _run_root_macro(in_file, out_mu, 1, norm, wp)
 
-            # Merge with hadd (same as in your bash script)
             print("Merging files")
             id_out     = f"./output/ID_MS/w{wp}/{tag}.root"
             mu_out     = f"./output/mu_ID/w{wp}/{tag}.root"
@@ -182,7 +169,6 @@ def do_analysis(datasets: list[str], wps: list[int]) -> None:
             _run_hadd(id_out, id_inputs)
             _run_hadd(mu_out, mu_inputs)
 
-        # --- DATA ---
         if "data" in datasets:
             print(f"(Data) Analysing wp={wp}")
 
@@ -198,14 +184,14 @@ def _run_gen_hist(input_path: str, output_path: str, wp: int) -> None:
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     cmd = [
-        sys.executable,            # same interpreter as analysis.py
+        sys.executable,
         "genHistograms.py",
         input_path,
         output_path,
         str(wp),
     ]
     print(" ".join(cmd))
-    subprocess.run(cmd, check=True)   # here non-zero really *is* an error
+    subprocess.run(cmd, check=True)
 
 
 def do_generation(datasets: list[str], wps: list[int]) -> None:
@@ -222,17 +208,13 @@ def do_generation(datasets: list[str], wps: list[int]) -> None:
     for wp in wps:
         print(f"\n==== Generating histograms for WP = {wp} ====\n")
 
-        # --- MC: SuperChic / StarLight / MadGraph ---
         for ds in ordered_mc:
             if ds not in datasets:
                 continue
 
             cfg = MC_SAMPLES[ds]
-            tag = cfg["tag"]   # mc_sc / mc_sl / mc_mg
+            tag = cfg["tag"]
 
-            # These correspond to:
-            # ./output/ID_MS/w${x}/mc_sc.root -> hist_mc_sc.root
-            # ./output/mu_ID/w${x}/mc_sc.root -> hist_mc_sc.root
             in_id  = f"./output/ID_MS/w{wp}/{tag}.root"
             out_id = f"./output/ID_MS/w{wp}/hist_{tag}.root"
 
@@ -242,10 +224,7 @@ def do_generation(datasets: list[str], wps: list[int]) -> None:
             _run_gen_hist(in_id, out_id, wp)
             _run_gen_hist(in_mu, out_mu, wp)
 
-        # --- DATA ---
         if "data" in datasets:
-            # ./output/ID_MS/w${x}/data23.root -> hist_data23.root
-            # ./output/mu_ID/w${x}/data23.root -> hist_data23.root
             in_id  = f"./output/ID_MS/w{wp}/data23.root"
             out_id = f"./output/ID_MS/w{wp}/hist_data23.root"
 
@@ -254,11 +233,6 @@ def do_generation(datasets: list[str], wps: list[int]) -> None:
 
             _run_gen_hist(in_id, out_id, wp)
             _run_gen_hist(in_mu, out_mu, wp)
-
-
-
-# already have MC_SAMPLES above, reused here:
-# MC_SAMPLES = { "sc": {...}, "sl": {...}, "mg": {...} }
 
 def _run_gen_eff(input_path: str, output_path: str, wp:int) -> None:
     """Call: python genEff.py in out."""
@@ -317,20 +291,18 @@ def do_efficiency(datasets: list[str], wps: list[int]) -> None:
     for wp in wps:
         print(f"\n==== Efficiencies for WP = {wp} ====\n")
 
-        # Data
         if "data" in datasets:
             in_data  = f"w{wp}/hist_data23.root"
             out_data = f"output/eff/w{wp}/eff_data23.root"
             _run_gen_eff(in_data, out_data, wp)
 
-        # MC samples (SuperChic / StarLight / MadGraph)
         for ds in ordered_mc:
             if ds not in datasets:
                 continue
 
-            tag = MC_SAMPLES[ds]["tag"]   # mc_sc / mc_sl / mc_mg
+            tag = MC_SAMPLES[ds]["tag"]
             in_mc  = f"w{wp}/hist_{tag}.root"
-            out_mc = f"output/eff/w{wp}/eff_{tag}.root"   # eff_mc_sc.root etc.
+            out_mc = f"output/eff/w{wp}/eff_{tag}.root"
             _run_gen_eff(in_mc, out_mc, wp)
 def do_scale_factors(datasets: list[str], wps: list[int]) -> None:
     """
@@ -356,9 +328,9 @@ def do_scale_factors(datasets: list[str], wps: list[int]) -> None:
             if ds not in datasets:
                 continue
 
-            tag = MC_SAMPLES[ds]["tag"]     # mc_sc, mc_sl, mc_mg
+            tag = MC_SAMPLES[ds]["tag"]
             eff_mc = f"./output/eff/w{wp}/eff_{tag}.root"
-            sf_out = f"./output/eff/w{wp}/sf_{ds}.root"  # sf_sc.root, sf_sl.root, sf_mg.root
+            sf_out = f"./output/eff/w{wp}/sf_{ds}.root"
 
             _run_gen_sf(eff_data, eff_mc, sf_out, str(wp))
 
@@ -404,9 +376,6 @@ def main(argv=None):
 
     if args.z:
         do_syst_plots(args.dataset)
-
-
-
 
 if __name__ == "__main__":
     main()

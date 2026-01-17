@@ -12,52 +12,52 @@ EFF_MC_FNAME = "output/eff/w0/eff_mc_sc.root"
 
 
 _H2D = [
-    # {
-    # 'in_fname': IDMS_DATA_FNAME,
-    # 'h2_name': "aco_v_probe_pt_presel",
-    # 'x_label':"#it{p}_{#it{T}}^{ID,exMS}",
-    # 'y_label':"#it{a}_{#it{#phi}}^{ID,exMS}",
-    # 'x_cuts': [2],
-    # 'y_cuts': [0.02],
-    # 'logz':     True,
-    # 'pdf_name':"paper/idms/aco_v_pairPt.pdf"},
+    {
+    'in_fname': IDMS_DATA_FNAME,
+    'h2_name': "aco_v_probe_pt_presel",
+    'x_label':"#it{p}_{T}^{T-P} [GeV]",
+    'y_label':"#it{A}_{#it{#phi}}^{T-P}",
+    'x_cuts': [2],
+    'y_cuts': [0.02],
+    'logz':     True,
+    'pdf_name':"paper/idms/aco_v_pairPt.pdf"},
 
-    # {
-    # 'in_fname': MUID_DATA_FNAME,
-    # 'h2_name': "aco_v_probe_pt_presel",
-    # 'x_label':"#it{p}_{#it{T}}^{#it{#mu},ID}",
-    # 'y_label':"#it{a}_{#it{#phi}}^{#it{#mu},ID}",
-    # 'x_cuts': [2],
-    # 'y_cuts': [0.02],
-    # 'logz':     True,
-    # 'pdf_name':"paper/muid/aco_v_pairPt.pdf"
-    # },
+    {
+    'in_fname': MUID_DATA_FNAME,
+    'h2_name': "aco_v_probe_pt_presel",
+    'x_label':"#it{p}_{{T}}^{T-P}",
+    'y_label':"#it{A}_{#it{#phi}}^{T-P}",
+    'x_cuts': [2],
+    'y_cuts': [0.02],
+    'logz':     True,
+    'pdf_name':"paper/muid/aco_v_pairPt.pdf"
+    },
 
-    # {
-    # 'in_fname': IDMS_DATA_FNAME,
-    # 'h2_name': "dR_v_probe_pt_presel",
-    # 'x_label': "#it{p}_{#it{T}}^{exMS}",
-    # 'y_label': "#Delta#it{R}^{exMS,ID}",
-    # 'y_cuts': [0.1],
-    # 'logz':     True,
-    # 'pdf_name':"paper/idms/dr_v_probePt.pdf"
-    # },
+    {
+    'in_fname': IDMS_DATA_FNAME,
+    'h2_name': "dR_v_probe_pt_presel",
+    'x_label': "#it{p}_{T}^{P} [GeV]",
+    'y_label': "#Delta#it{R}^{P-ID}",
+    'y_cuts': [0.1],
+    'logz':     True,
+    'pdf_name':"paper/idms/dr_v_probePt.pdf"
+    },
 
-    # {
-    # 'in_fname': MUID_DATA_FNAME,
-    # 'h2_name': "dR_v_probe_pt_presel",
-    # 'x_label': "#it{p}_{#it{T}}^{ID}",
-    # 'y_label': "#Delta#it{R}^{#it{#mu},ID}",
-    # 'y_cuts': [0.01],
-    # 'logz':     True,
-    # 'pdf_name':"paper/muid/dr_v_probePt.pdf"
-    # },
+    {
+    'in_fname': MUID_DATA_FNAME,
+    'h2_name': "dR_v_probe_pt_presel",
+    'x_label': "#it{p}_{T}^{P} [GeV]",
+    'y_label': "#Delta#it{R}^{P-#it{#mu}}",
+    'y_cuts': [0.01],
+    'logz':     True,
+    'pdf_name':"paper/muid/dr_v_probePt.pdf"
+    },
 
     {
     'in_fname': "output/eff/w0/sf_sc.root",
     'h2_name': "scale_factor_2d",
-    'x_label': "#it{p}_{#it{T}}^{probe}",
-    'y_label': "q#eta",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
     'z_label': "Scale Factor [%]",
     'y_cuts': None,
     'logx': True,
@@ -70,9 +70,9 @@ _H2D = [
     {
     'in_fname': "output/eff/w0/eff_mc_sc.root",
     'h2_name': "total_2d_eff",
-    'x_label': "#it{p}_{#it{T}}",
-    'y_label': "q#eta",
-    'z_label': "#mu efficiency [%]",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
+    'z_label': "#it{#varepsilon}(#mu) [%]",
     'y_cuts': None,
     'logx': True,
     # 'logz': True,
@@ -84,9 +84,9 @@ _H2D = [
     {
     'in_fname': "output/eff/w0/eff_data23.root",
     'h2_name': "total_2d_eff",
-    'x_label': "#it{p}_{#it{T}}",
-    'y_label': "q#eta",
-    'z_label': "#mu efficiency [%]",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
+    'z_label': "#it{#varepsilon}(#mu) [%]",
     'y_cuts': None,
     'logx': True,
     # 'logz': True,
@@ -98,9 +98,9 @@ _H2D = [
     {
     'in_fname': "output/eff/w0/eff_mc_sc.root",
     'h2_name': "ID_MS_2d_eff",
-    'x_label': "#it{p}_{#it{T}}",
-    'y_label': "q#eta",
-    'z_label': "ID|MS efficiency [%]",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
+    'z_label': "#it{#varepsilon}(ID|MS) [%]",
     'y_cuts': None,
     'logx': True,
     # 'logz': True,
@@ -112,9 +112,9 @@ _H2D = [
     {
     'in_fname': "output/eff/w0/eff_data23.root",
     'h2_name': "ID_MS_2d_eff",
-    'x_label': "#it{p}_{#it{T}}",
-    'y_label': "q#eta",
-    'z_label': "ID|MD efficiency [%]",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
+    'z_label': "#it{#varepsilon}(ID|MS) [%]",
     'y_cuts': None,
     'logx': True,
     # 'logz': True,
@@ -126,9 +126,9 @@ _H2D = [
     {
     'in_fname': "output/eff/w0/eff_mc_sc.root",
     'h2_name': "mu_ID_2d_eff",
-    'x_label': "#it{p}_{#it{T}}",
-    'y_label': "q#eta",
-    'z_label': "#mu|ID efficiency [%]",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
+    'z_label': "#it{#varepsilon}(#mu|ID) [%]",
     'y_cuts': None,
     'logx': True,
     # 'logz': True,
@@ -140,9 +140,9 @@ _H2D = [
     {
     'in_fname': "output/eff/w0/eff_data23.root",
     'h2_name': "mu_ID_2d_eff",
-    'x_label': "#it{p}_{#it{T}}",
-    'y_label': "q#eta",
-    'z_label': "#mu|ID efficiency [%]",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
+    'z_label': "#it{#varepsilon}(#mu|ID) [%]",
     'y_cuts': None,
     'logx': True,
     # 'logz': True,
@@ -157,8 +157,8 @@ _H2D_control = [
     {
     'in_fname': "output/ID_MS/w0/hist_data23.root",
     'h2_name': "eps_2d_total",
-    'x_label': "#it{p}_{#it{T}}",
-    'y_label': "q#eta",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
     'z_label': "counts",
     'y_cuts': None,
     'logx': True,
@@ -171,8 +171,8 @@ _H2D_control = [
     {
     'in_fname': "output/ID_MS/w0/hist_data23.root",
     'h2_name': "eps_2d_pass",
-    'x_label': "#it{p}_{#it{T}}",
-    'y_label': "q#eta",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
     'z_label': "counts",
     'y_cuts': None,
     'logx': True,
@@ -185,8 +185,8 @@ _H2D_control = [
     {
     'in_fname': "output/mu_ID/w0/hist_data23.root",
     'h2_name': "eps_2d_total",
-    'x_label': "#it{p}_{#it{T}}",
-    'y_label': "q#eta",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
     'z_label': "counts",
     'y_cuts': None,
     'logx': True,
@@ -199,8 +199,8 @@ _H2D_control = [
     {
     'in_fname': "output/mu_ID/w0/hist_data23.root",
     'h2_name': "eps_2d_pass",
-    'x_label': "#it{p}_{#it{T}}",
-    'y_label': "q#eta",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
     'z_label': "counts",
     'y_cuts': None,
     'logx': True,
@@ -214,8 +214,8 @@ _H2D_control = [
     {
     'in_fname': "output/ID_MS/w0/hist_mc_sc.root",
     'h2_name': "eps_2d_total",
-    'x_label': "#it{p}_{#it{T}}",
-    'y_label': "q#eta",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
     'z_label': "counts",
     'y_cuts': None,
     'logx': True,
@@ -228,8 +228,8 @@ _H2D_control = [
     {
     'in_fname': "output/ID_MS/w0/hist_mc_sc.root",
     'h2_name': "eps_2d_pass",
-    'x_label': "#it{p}_{#it{T}}",
-    'y_label': "q#eta",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
     'z_label': "counts",
     'y_cuts': None,
     'logx': True,
@@ -242,8 +242,8 @@ _H2D_control = [
     {
     'in_fname': "output/mu_ID/w0/hist_mc_sc.root",
     'h2_name': "eps_2d_total",
-    'x_label': "#it{p}_{#it{T}}",
-    'y_label': "q#eta",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
     'z_label': "counts",
     'y_cuts': None,
     'logx': True,
@@ -256,13 +256,45 @@ _H2D_control = [
     {
     'in_fname': "output/mu_ID/w0/hist_mc_sc.root",
     'h2_name': "eps_2d_pass",
-    'x_label': "#it{p}_{#it{T}}",
-    'y_label': "q#eta",
+    'x_label': "#it{p}_{T} [GeV]",
+    'y_label': "#it{q#eta}",
     'z_label': "counts",
     'y_cuts': None,
     'logx': True,
     'logz': True,
     'pdf_name':"paper/muid/eps_2d_pass_mc.pdf",
+    # 'text': True,
+    # 'tight_layout': True,
+    'canvas_size': (1200, 800)
+    },
+
+]
+
+H2D_phi = [
+    {
+    'in_fname': "output/mu_ID/w0/phiHist_data23.root",
+    'h2_name': "phi_eta_postsel",
+    'x_label': "#it{#phi}",
+    'y_label': "#it{#eta}",
+    'z_label': "counts",
+    'y_cuts': None,
+    # 'logx': True,
+    # 'logz': True,
+    'pdf_name':"paper/muid/phi_v_eta.pdf",
+    # 'text': True,
+    # 'tight_layout': True,
+    'canvas_size': (1200, 800)
+    },
+    {
+    'in_fname': "output/mu_ID/w0/phiHist_data23.root",
+    'h2_name': "phi_qeta_postsel",
+    'x_label': "#it{#phi}",
+    'y_label': "#it{q#eta}",
+    'z_label': "counts",
+    'y_cuts': None,
+    # 'logx': True,
+    # 'logz': True,
+    'pdf_name':"paper/muid/phi_v_qeta.pdf",
     # 'text': True,
     # 'tight_layout': True,
     'canvas_size': (1200, 800)
@@ -273,8 +305,8 @@ _H1D = [
     {   
         'h_name':       'tag_pt',
         'output_pdf':   'tag_pt.pdf',
-        'xlabel-idms':  '#it{P}_{#it{T}}^{#mu}',
-        'xlabel-muid':  '#it{P}_{#it{T}}^{#mu}',
+        'xlabel-idms':  '#it{p}_{T}}^{T} [GeV]',
+        'xlabel-muid':  '#it{p}_{T}}^{T} [GeV]',
         'ylabel':       'no. of tags',
         'logy':         True,
         'cut':          None
@@ -282,8 +314,8 @@ _H1D = [
     {
         'h_name':       'tag_phi',
         'output_pdf':   'tag_phi.pdf',
-        'xlabel-idms':  '#it{#phi}^{#mu}',
-        'xlabel-muid':  '#it{#phi}^{#mu}',
+        'xlabel-idms':  '#it{#phi}^{T}',
+        'xlabel-muid':  '#it{#phi}^{T}',
         'ylabel':       'no. of tags',
         'logy':         False,
         'cut':          None
@@ -291,8 +323,17 @@ _H1D = [
     {
         'h_name':       'tag_eta',
         'output_pdf':   'tag_eta.pdf',
-        'xlabel-idms':  '#eta^{#mu}',
-        'xlabel-muid':  '#eta^{#mu}',
+        'xlabel-idms':  '#it{#eta}^{T}',
+        'xlabel-muid':  '#it{#eta}^{T}',
+        'ylabel':       'no. of tags',
+        'logy':         False,
+        'cut':          None
+    },
+    {
+        'h_name':       'tag_qeta',
+        'output_pdf':   'tag_qeta.pdf',
+        'xlabel-idms':  '#it{q#eta}^{T}',
+        'xlabel-muid':  '#it{q#eta}^{T}',
         'ylabel':       'no. of tags',
         'logy':         False,
         'cut':          None
@@ -300,8 +341,8 @@ _H1D = [
     {
         'h_name':       'eps_qEta_pass',
         'output_pdf':   'eps_qEta_pass.pdf',
-        'xlabel-idms':  '#it{q#eta}^{exMS}',
-        'xlabel-muid':  '#it{q#eta}^{ID}',
+        'xlabel-idms':  '#it{q#eta}^{P}',
+        'xlabel-muid':  '#it{q#eta}^{P}',
         'ylabel':       'no. of probes',
         'logy':         False,
         'cut':          None
@@ -309,8 +350,8 @@ _H1D = [
     {   
         'h_name':       'probe_pt_postsel',
         'output_pdf':   'probe_pt_postsel.pdf',
-        'xlabel-idms':  '#it{P}_{#it{T}}^{exMS}',
-        'xlabel-muid':  '#it{P}_{#it{T}}^{ID}',
+        'xlabel-idms':  '#it{p}_{T}}^{P} [GeV]',
+        'xlabel-muid':  '#it{p}_{T}}^{P} [GeV]',
         'ylabel':       'no. of probes',
         'logy':         True,
         'cut':          None
@@ -318,8 +359,8 @@ _H1D = [
     {
         'h_name':       'probe_phi_presel',
         'output_pdf':   'probe_phi_presel.pdf',
-        'xlabel-idms':  '#it{#phi}^{exMS}',
-        'xlabel-muid':  '#it{#phi}^{ID}',
+        'xlabel-idms':  '#it{#phi}^{P}',
+        'xlabel-muid':  '#it{#phi}^{P}',
         'ylabel':       'no. of probes',
         'logy':         False,
         'cut':          None
@@ -327,8 +368,8 @@ _H1D = [
     {
         'h_name':       'probe_phi_postsel',
         'output_pdf':   'probe_phi_postsel.pdf',
-        'xlabel-idms':  '#it{#phi}^{exMS}',
-        'xlabel-muid':  '#it{#phi}^{ID}',
+        'xlabel-idms':  '#it{#phi}^{P}',
+        'xlabel-muid':  '#it{#phi}^{P}',
         'ylabel':       'no. of probes',
         'logy':         False,
         'cut':          None
@@ -336,8 +377,8 @@ _H1D = [
     {
         'h_name':       'probe_eta_presel',
         'output_pdf':   'probe_eta_presel.pdf',
-        'xlabel-idms':  '#eta^{exMS}',
-        'xlabel-muid':  '#eta^{ID}',
+        'xlabel-idms':  '#it{#eta}^{P}',
+        'xlabel-muid':  '#it{#eta}^{P}',
         'ylabel':       'no. of probes',
         'logy':         False,
         'cut':          None
@@ -345,8 +386,17 @@ _H1D = [
     {
         'h_name':       'probe_eta_postsel',
         'output_pdf':   'probe_eta_postsel.pdf',
-        'xlabel-idms':  '#eta^{exMS}',
-        'xlabel-muid':  '#eta^{ID}',
+        'xlabel-idms':  '#it{#eta}^{P}',
+        'xlabel-muid':  '#it{#eta}^{P}',
+        'ylabel':       'no. of probes',
+        'logy':         False,
+        'cut':          None
+    },
+    {
+        'h_name':       'probe_qeta_postsel',
+        'output_pdf':   'probe_qeta_postsel.pdf',
+        'xlabel-idms':  '#it{q#eta}^{P}',
+        'xlabel-muid':  '#it{q#eta}^{P}',
         'ylabel':       'no. of probes',
         'logy':         False,
         'cut':          None
@@ -354,8 +404,17 @@ _H1D = [
     {
         'h_name':       'probe_d0_postsel',
         'output_pdf':   'probe_d0_postsel.pdf',
-        'xlabel-idms':  '#it{d}_{0}^{exMS} [mm]',
-        'xlabel-muid':  '#it{d}_{0}^{ID} [mm]',
+        'xlabel-idms':  '#it{d}_{0}^{P} [mm]',
+        'xlabel-muid':  '#it{d}_{0}^{P} [mm]',
+        'ylabel':       'no. of probes',
+        'logy':         True,
+        'cut':          None
+    },
+    {
+        'h_name':       'probe_dR_presel',
+        'output_pdf':   'probe_dR_presel.pdf',
+        'xlabel-idms':  '#Delta#it{R}^{P-ID}',
+        'xlabel-muid':  '#Delta#it{R}^{P-#mu}',
         'ylabel':       'no. of probes',
         'logy':         True,
         'cut':          None
@@ -363,59 +422,59 @@ _H1D = [
     {
         'h_name':       'probe_dR_postsel',
         'output_pdf':   'probe_dR_postsel.pdf',
-        'xlabel-idms':  '#Delta#it{R}^{exMS-ID}',
-        'xlabel-muid':  '#Delta#it{R}^{ID-#mu}',
+        'xlabel-idms':  '#Delta#it{R}^{P-ID}',
+        'xlabel-muid':  '#Delta#it{R}^{P-#mu}',
         'ylabel':       'no. of probes',
         'logy':         True,
         'cut':          None
     },
     {
-        # 'h_name':       'probe_dR_postsel_shortrange',
-        'h_name':       'dR_probe_postsel_shortrange',
+        'h_name':       'probe_dR_postsel_shortrange',
         'output_pdf':   'probe_dR_postsel_shortrange.pdf',
-        'xlabel-idms':  '#Delta#it{R}^{exMS-ID}',
-        'xlabel-muid':  '#Delta#it{R}^{ID-#mu}',
+        'xlabel-idms':  '#Delta#it{R}^{P-ID}',
+        'xlabel-muid':  '#Delta#it{R}^{P-#mu}',
         'ylabel':       'no. of probes',
         'logy':         True,
-        'cut':          None
+        'cut':          None,
+        'ylim_ratio':   (1., 10.)
     },
     {
         'h_name':       'TPpair_aco_postsel',
         'output_pdf':   'TPpair_aco_postsel.pdf',
-        'xlabel-idms':  '#it{A}_{#it{#phi}}^{#mu-exMS}',
-        'xlabel-muid':  '#it{A}_{#it{#phi}}^{#mu-ID}',
+        'xlabel-idms':  '#it{A}_{#it{#phi}}^{T-P}',
+        'xlabel-muid':  '#it{A}_{#it{#phi}}^{T-P}',
         'ylabel':       'no. of tag-probe pairs',
         'logy':         True,
     },
     {
         'h_name':       'TPpair_aco_postsel',
         'output_pdf':   'TPpair_aco_postsel.pdf',
-        'xlabel-idms':  '#it{A}_{#it{#phi}}^{#mu-exMS}',
-        'xlabel-muid':  '#it{A}_{#it{#phi}}^{#mu-ID}',
+        'xlabel-idms':  '#it{A}_{#it{#phi}}^{T-P}',
+        'xlabel-muid':  '#it{A}_{#it{#phi}}^{T-P}',
         'ylabel':       'no. of tag-probe pairs',
         'logy':         True,
     },
     {
         'h_name':       'TPpair_pt_postsel',
         'output_pdf':   'TPpair_pt_postsel.pdf',
-        'xlabel-idms':  '#it{p}_{#it{T}}^{#mu-exMS}',
-        'xlabel-muid':  '#it{p}_{#it{T}}^{#mu-ID}',
+        'xlabel-idms':  '#it{p}_{T}^{T-P} [GeV]',
+        'xlabel-muid':  '#it{p}_{T}^{T-P} [GeV]',
         'ylabel':       'no. of tag-probe pairs',
         'logy':         True,
     },
     {
         'h_name':       'TPpair_pt_postsel',
         'output_pdf':   'TPpair_pt_postsel.pdf',
-        'xlabel-idms':  '#it{p}_{#it{T}}^{#mu-exMS}',
-        'xlabel-muid':  '#it{p}_{#it{T}}^{#mu-ID}',
+        'xlabel-idms':  '#it{p}_{T}^{T-P} [GeV]',
+        'xlabel-muid':  '#it{p}_{T}^{T-P} [GeV]',
         'ylabel':       'no. of tag-probe pairs',
         'logy':         True,
     },
     {
         'h_name':       'TPpair_M_postsel',
         'output_pdf':   'TPpair_M_postsel.pdf',
-        'xlabel-idms':  '#it{M}_{inv.}^{#mu-exMS}',
-        'xlabel-muid':  '#it{M}_{inv.}^{#mu-ID}',
+        'xlabel-idms':  '#it{M}_{inv.}^{T-P} [GeV]',
+        'xlabel-muid':  '#it{M}_{inv.}^{T-P} [GeV]',
         'ylabel':       'no. of tag-probe pairs',
         'logy':         True,
         'cut':          None
@@ -454,7 +513,7 @@ _EFF = [
         'ylim':         (0.99, 1.01),
         'ylim_ratio':   (0.99, 1.01),
         'logx':         True,
-        'xlabel':       '#it{p}_{#it{T}} [GeV]',
+        'xlabel':       '#it{p}_{T} [GeV]',
         'ylabel':       '#it{#varepsilon}(ID|MS)'
     },
     {
@@ -463,7 +522,7 @@ _EFF = [
         'output_pdf':   'paper/eff/mu_ID_eff.pdf',
         'obj_name':     'mu_ID_eff',
         'logx':         True,
-        'xlabel':       '#it{p}_{#it{T}} [GeV]',
+        'xlabel':       '#it{p}_{T} [GeV]',
         'ylabel':       '#it{#varepsilon}(#mu|ID)'
     },
     {
@@ -472,7 +531,7 @@ _EFF = [
         'output_pdf':   'paper/eff/total_eff.pdf',
         'obj_name':     'total_eff',
         'logx':         True,
-        'xlabel':       '#it{p}_{#it{T}} [GeV]',
+        'xlabel':       '#it{p}_{T} [GeV]',
         'ylabel':       '#it{#varepsilon}(#mu)'
     },
     {
@@ -506,7 +565,7 @@ _EFF = [
     }
 ]
 
-# FOLDERS  = ["w0", "w1", "w2", "w3", "w4", "w5", "w6"]
+FOLDERS  = ["w0", "w1", "w2", "w3", "w4", "w5", "w6"]
 
 _SC_WP = [
     {
@@ -589,17 +648,33 @@ _SC_WP_COMPARISON = [
     }
 ]
 
-# for kwargs in _H2D:
-#     pf.plot_2d_histogram(**kwargs)
+for kwargs in _H2D:
+    pf.plot_2d_histogram(**kwargs)
 
-# for kwargs in _H2D_control:
-#     pf.plot_2d_histogram(**kwargs)
-# for kwargs_idms, kwargs_muid in zip(IDMS_H1D, MUID_H1D):
-#     pf.plot_1d_histogram(**kwargs_idms)
-#     pf.plot_1d_histogram(**kwargs_muid)
-# for kwargs in _EFF:
-#     pf.plot_efficiency(**kwargs)
+for kwargs in _H2D_control:
+    pf.plot_2d_histogram(**kwargs)
+
+for kwargs in H2D_phi:
+    pf.plot_2d_histogram(**kwargs)
+for kwargs_idms, kwargs_muid in zip(IDMS_H1D, MUID_H1D):
+    pf.plot_1d_histogram(**kwargs_idms)
+    pf.plot_1d_histogram(**kwargs_muid)
+for kwargs in _EFF:
+    pf.plot_efficiency(**kwargs)
 for kwargs in _SC_WP:
     pf.plot_scale_factor(**kwargs)
-# for kwargs in _SC_WP_COMPARISON:
-#     pf.plot_scale_factor(**kwargs)
+for kwargs in _SC_WP_COMPARISON:
+    pf.plot_scale_factor(**kwargs)
+
+
+short = {
+        'data_fname':   './output/mu_ID/w0/phiHist_data23.root',
+        'mc_fname':     './output/mu_ID/w0/phiHist_mc_sc.root',
+        'h_name':       'probe_dR_postsel_shortrange',
+        'output_pdf':   './paper/muid/probe_dR_postsel_shortrange.pdf',
+        'xlabel':       '#Delta#it{R}^{P-#mu}',
+        'ylabel':       'no. of probes',
+        'logy':         True,
+        'cut':          None,
+}
+pf.plot_1d_histogram(**short)

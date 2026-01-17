@@ -22,7 +22,7 @@ def _find_hist_recursive(d, name):
 
 def debug_consistency(h_pass, h_total):
     n = h_pass.GetNbinsX()
-    for i in range(0, n + 2):  # 0 = underflow, n+1 = overflow
+    for i in range(0, n + 2):
         p = h_pass.GetBinContent(i)
         t = h_total.GetBinContent(i)
         if p > t or t < 0 or p < 0:
@@ -44,8 +44,6 @@ def get_2d_efficiency(path, hname_pass, hname_total):
     if not h2_pass or not h2_total:
         f.Close()
         return None
-    # h2_pass.Sumw2();
-    # h2_total.Sumw2();
 
     h2_ratio = h2_pass.Clone("h2_ratio")
     h2_ratio.SetDirectory(0)
@@ -61,8 +59,6 @@ def combine_2d_total_eff(eff1, eff2):
     if not eff1 or not eff2:
         print('Efficency histograms empty!')
         return None
-    # eff1.Sumw2();
-    # eff2.Sumw2();
     eff_total = eff1.Clone("eps_2d")
     eff_total.SetTitle('eps_2d;p_{T},q#eta')
     eff_total.Multiply(eff2)
@@ -84,9 +80,6 @@ def get_efficiency(path, hname_pass, hname_total, rebin=False, edges=None):
     if rebin and edges:
         h_pass  = _rebin_to(h_pass,  edges)
         h_total = _rebin_to(h_total, edges)
-
-    # print("nbinsX:", h_pass.GetNbinsX(), h_total.GetNbinsX())
-    # print("Entries:", h_pass.GetEntries(), h_total.GetEntries())
 
     debug_consistency(h_pass, h_total)
     if not ROOT.TEfficiency.CheckConsistency(h_pass, h_total):
@@ -156,7 +149,6 @@ def main():
         print("Total efficiency error")
         return
 
-
     print(f"Saving to {out_fname}")
     f_out = ROOT.TFile(out_fname, "RECREATE")
     id_eff_pt.SetName("ID_MS_eff")
@@ -172,8 +164,6 @@ def main():
     id_eff_qeta.Write()
     mu_eff_qeta.Write()
     total_eff_qeta.Write()
-    # total_eff.Write()
-
 
     if make_2d:
         print("Making 2d efficiency plots")

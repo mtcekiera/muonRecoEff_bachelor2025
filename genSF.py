@@ -11,7 +11,6 @@ def _get_point(g, i):
             g.GetErrorYlow(i),  g.GetErrorYhigh(i))
 
 def _rel_close(a, b, tol):
-    # absolute-or-relative tolerance
     return abs(a - b) <= tol * max(1.0, abs(a), abs(b))
 
 def ratio_of_TGraphs(g1, g2, name):
@@ -47,7 +46,6 @@ def ratio_TGraphAsymmErrors(g_num, g_den, name="ratio", title="ratio", xmatch_to
     out = ROOT.TGraphAsymmErrors(); ROOT.SetOwnership(out, False)
     out.SetName(name); out.SetTitle(title)
 
-    # index denominator by x for quick lookup
     den_points = []
     for j in range(g_den.GetN()):
         den_points.append(_get_point(g_den, j))
@@ -55,7 +53,6 @@ def ratio_TGraphAsymmErrors(g_num, g_den, name="ratio", title="ratio", xmatch_to
     for i in range(g_num.GetN()):
         x1, y1, exl1, exh1, eyl1, eyh1 = _get_point(g_num, i)
 
-        # find a denominator point with the same x (within tolerance)
         jmatch = None
         for j, (x2, _, _, _, _, _) in enumerate(den_points):
             if _rel_close(x1, x2, xmatch_tol):
@@ -66,11 +63,10 @@ def ratio_TGraphAsymmErrors(g_num, g_den, name="ratio", title="ratio", xmatch_to
 
         x2, y2, exl2, exh2, eyl2, eyh2 = den_points[jmatch]
         if y2 <= 0:
-            continue  # undefined ratio
+            continue
 
         r = y1 / y2
 
-        # default: asymmetric uncertainty propagation (uncorrelated)
         valid_prop = (y1 > 0) and (y2 > 0)
         if valid_prop:
             up  = r * math.hypot( (eyh1 / y1) if y1 > 0 else 0.0,
@@ -80,9 +76,7 @@ def ratio_TGraphAsymmErrors(g_num, g_den, name="ratio", title="ratio", xmatch_to
         else:
             up = dn = 0.0
 
-        # fallback to conservative envelope when propagation is ill-defined or requested
         if conservative_fallback and (not valid_prop or not math.isfinite(up) or not math.isfinite(dn)):
-            # clamp to physical domain and avoid division singularities
             num_hi = y1 + eyh1
             num_lo = max(y1 - eyl1, 0.0)
             den_hi = y2 + eyh2
@@ -92,7 +86,6 @@ def ratio_TGraphAsymmErrors(g_num, g_den, name="ratio", title="ratio", xmatch_to
             up = max(0.0, r_hi)
             dn = max(0.0, r_lo)
 
-        # x errors: take the larger on each side
         exl = max(exl1, exl2)
         exh = max(exh1, exh2)
 
@@ -103,9 +96,6 @@ def ratio_TGraphAsymmErrors(g_num, g_den, name="ratio", title="ratio", xmatch_to
     return out
 
 def ratio_2d(eff_data, eff_mc, name):
-    # if not eff_data or not eff_mc:
-    #     print('Efficency histograms empty!')
-    #     return None
     eff_ratio = eff_data.Clone("eps_2d")
     eff_ratio.SetTitle('eps_2d;p_{T},q#eta')
     eff_ratio.Divide(eff_mc)
@@ -122,12 +112,8 @@ def main():
     out_fname = sys.argv[3]
     wp = sys.argv[4]
 
-
-
     data_file = ROOT.TFile(data_fname)
     mc_file = ROOT.TFile(mc_fname)
-
-
 
     data_eff = data_file.Get("total_eff")
     mc_eff = mc_file.Get("total_eff")
@@ -143,8 +129,6 @@ def main():
     
     print(f'{data_fname} + {mc_fname} -> {out_fname}')
 
-    # SF = ratio_of_TGraphs(data_eff, mc_eff, 'scale_factor_pT')
-    # SF_qeta = ratio_of_TGraphs(data_eff_qeta, mc_eff_qeta, 'scale_factor_qEta')
     SF = ratio_TGraphAsymmErrors(data_eff, mc_eff, 'scale_factor_pT')
     SF_qeta = ratio_TGraphAsymmErrors(data_eff_qeta, mc_eff_qeta, 'scale_factor_qEta')
 
